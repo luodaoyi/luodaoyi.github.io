@@ -1,0 +1,727 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><title>Android逆向 JNI静态注册(c++和java交互) | Asura的笔记本</title><meta property="og:title" content="Android逆向 JNI静态注册(c++和java交互) - Asura的笔记本"><meta property="og:type" content="article"><meta property="article:published_time" content="2020-04-24T14:49:00+08:00"><meta property="article:modified_time" content="2020-04-24T14:49:00+08:00"><meta name=Keywords content="docker,linux,逆向,汇编,win32"><meta name=description content="Android逆向 JNI静态注册(c++和java交互)"><meta name=author content="Asura"><meta property="og:url" content="https://luodaoyi.com/p/android%E9%80%86%E5%90%91-jni%E9%9D%99%E6%80%81%E6%B3%A8%E5%86%8Cc%E5%92%8Cjava%E4%BA%A4%E4%BA%92.html"><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><link rel=stylesheet href=/css/normalize.css><link rel=stylesheet href=/css/style.css><script src=https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin=anonymous></script><script async src=//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js></script><script>(adsbygoogle=window.adsbygoogle||[]).push({google_ad_client:"ca-pub-6404093706193657",enable_page_level_ads:true});</script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin=anonymous></head><body><header id=header class=clearfix><div class=container><div class=col-group><div class=site-name><a id=logo href=https://luodaoyi.com/>Asura的笔记本</a><p class=description>众生皆苦，奈何人间处处是修罗战场</p></div><div><nav id=nav-menu class=clearfix><a class=current href=https://luodaoyi.com/>首页</a>
+<a href=https://luodaoyi.com/archive.html title=归档>归档</a>
+<a href=https://luodaoyi.com/p/ben-zhan-shang-xiankms-fu-wuyi-ju-ming-ling-ji-huo.html title=KMS>KMS</a></nav></div></div></div></header><div id=body><div class=container><div class=col-group><div class=col-8 id=main><div class=res-cons><article class=post><header><h1 class=post-title>Android逆向 JNI静态注册(c++和java交互)</h1></header><date class="post-meta meta-date">2020年4月24日</date><div class=post-meta><span>|</span>
+<span class=meta-category><a href=https://luodaoyi.com/categories/Android>Android</a></span></div><div class=post-meta><span id=busuanzi_container_page_pv>|
+<span id=busuanzi_value_page_pv></span><span>阅读</span></span></div><div class=post-content><h1 id=android逆向-jni静态注册c和java交互>Android逆向 JNI静态注册(c++和java交互)</h1><h2 id=使用android-studio新建jni项目>使用Android Studio新建JNi项目</h2><p>请看NCK大佬的文章:</p><p><a href=https://www.cnblogs.com/fuhua/p/12695436.html title=https://www.cnblogs.com/fuhua/p/12695436.html>https://www.cnblogs.com/fuhua/p/12695436.html</a></p><p>先加个textview方便输出调试信息</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-xml data-lang=xml><span style=color:#999;font-weight:700;font-style:italic>&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+<span style=color:navy>&lt;androidx.coordinatorlayout.widget.CoordinatorLayout</span> <span style=color:teal>xmlns:android=</span><span style=color:#d14>&#34;http://schemas.android.com/apk/res/android&#34;</span>
+    <span style=color:teal>xmlns:app=</span><span style=color:#d14>&#34;http://schemas.android.com/apk/res-auto&#34;</span>
+    <span style=color:teal>xmlns:tools=</span><span style=color:#d14>&#34;http://schemas.android.com/tools&#34;</span>
+    <span style=color:teal>android:layout_width=</span><span style=color:#d14>&#34;match_parent&#34;</span>
+    <span style=color:teal>android:layout_height=</span><span style=color:#d14>&#34;match_parent&#34;</span>
+    <span style=color:teal>tools:context=</span><span style=color:#d14>&#34;.MainActivity&#34;</span><span style=color:navy>&gt;</span>
+
+    <span style=color:navy>&lt;TextView</span>
+        <span style=color:teal>android:id=</span><span style=color:#d14>&#34;@+id/TextViewDebug&#34;</span>
+        <span style=color:teal>android:layout_width=</span><span style=color:#d14>&#34;match_parent&#34;</span>
+        <span style=color:teal>android:layout_height=</span><span style=color:#d14>&#34;match_parent&#34;</span>
+        <span style=color:teal>android:gravity=</span><span style=color:#d14>&#34;center&#34;</span>
+        <span style=color:teal>android:text=</span><span style=color:#d14>&#34;TextView&#34;</span> <span style=color:navy>/&gt;</span>
+<span style=color:navy>&lt;/androidx.coordinatorlayout.widget.CoordinatorLayout&gt;</span>
+</code></pre></td></tr></table></div></div><p><a data-fancybox=gallery href=https://cdn.jsdelivr.net/gh/luodaoyi/luodaoyi.github.io@master/uploads/2020/04/image-1587733635504.png><img class=mx-auto alt=file src=https://cdn.jsdelivr.net/gh/luodaoyi/luodaoyi.github.io@master/uploads/2020/04/image-1587733635504.png></a></p><h2 id=1-jni普通字段静态字段互操作>1. JNI普通字段，静态字段互操作.</h2><blockquote><p>目标: 获取普通字段的值，设置普通字段的值，获取静态字段的值，设置静态字段的值。</p></blockquote><p>编辑java文件加入静态字段和四个将要写到jni中的方法:<br>如下:</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">57
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">58
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">59
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">60
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">61
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">62
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">63
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">64
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">65
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">66
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">67
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">68
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">69
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">70
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">71
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">72
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">73
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">74
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">75
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">76
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">77
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">78
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">79
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">80
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">81
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">82
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">83
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">84
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">85
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#000;font-weight:700>package</span> <span style=color:#555>com.example.jnidemo2</span><span style=color:#000;font-weight:700>;</span>
+
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>android.os.Bundle</span><span style=color:#000;font-weight:700>;</span>
+
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>com.google.android.material.floatingactionbutton.FloatingActionButton</span><span style=color:#000;font-weight:700>;</span>
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>com.google.android.material.snackbar.Snackbar</span><span style=color:#000;font-weight:700>;</span>
+
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>androidx.appcompat.app.AppCompatActivity</span><span style=color:#000;font-weight:700>;</span>
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>androidx.appcompat.widget.Toolbar</span><span style=color:#000;font-weight:700>;</span>
+
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>android.view.View</span><span style=color:#000;font-weight:700>;</span>
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>android.view.Menu</span><span style=color:#000;font-weight:700>;</span>
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>android.view.MenuItem</span><span style=color:#000;font-weight:700>;</span>
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>android.widget.TextView</span><span style=color:#000;font-weight:700>;</span>
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>android.widget.Toast</span><span style=color:#000;font-weight:700>;</span>
+
+<span style=color:#000;font-weight:700>public</span> <span style=color:#000;font-weight:700>class</span> <span style=color:#458;font-weight:700>MainActivity</span> <span style=color:#000;font-weight:700>extends</span> AppCompatActivity <span style=color:#000;font-weight:700>{</span>
+
+    <span style=color:#000;font-weight:700>static</span> <span style=color:#000;font-weight:700>{</span>
+        System<span style=color:#000;font-weight:700>.</span><span style=color:teal>loadLibrary</span><span style=color:#000;font-weight:700>(</span><span style=color:#d14>&#34;hello&#34;</span><span style=color:#000;font-weight:700>);</span>
+    <span style=color:#000;font-weight:700>}</span>
+
+    <span style=color:#000;font-weight:700>private</span> String ReflectionField <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;Reflection Field&#34;</span><span style=color:#000;font-weight:700>;</span>
+    <span style=color:#000;font-weight:700>private</span> <span style=color:#000;font-weight:700>static</span> String StaticReflectionField <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;Static Reflection Field&#34;</span><span style=color:#000;font-weight:700>;</span>
+
+    <span style=color:#000;font-weight:700>private</span> <span style=color:#000;font-weight:700>native</span> String <span style=color:#900;font-weight:700>get_reflection_field</span><span style=color:#000;font-weight:700>();</span>
+
+    <span style=color:#000;font-weight:700>private</span> <span style=color:#000;font-weight:700>native</span> String <span style=color:#900;font-weight:700>get_static_reflection_field</span><span style=color:#000;font-weight:700>();</span>
+
+    <span style=color:#000;font-weight:700>private</span> <span style=color:#000;font-weight:700>native</span> <span style=color:#458;font-weight:700>void</span> <span style=color:#900;font-weight:700>set_reflection_field</span><span style=color:#000;font-weight:700>(</span>String value<span style=color:#000;font-weight:700>);</span>
+
+    <span style=color:#000;font-weight:700>private</span> <span style=color:#000;font-weight:700>native</span> <span style=color:#458;font-weight:700>void</span> <span style=color:#900;font-weight:700>set_static_reflection_field</span><span style=color:#000;font-weight:700>(</span>String value<span style=color:#000;font-weight:700>);</span>
+
+    <span style=color:#3c5d5d;font-weight:700>@Override</span>
+     <span style=color:#000;font-weight:700>protected</span> <span style=color:#458;font-weight:700>void</span> <span style=color:#900;font-weight:700>onCreate</span><span style=color:#000;font-weight:700>(</span>Bundle savedInstanceState<span style=color:#000;font-weight:700>)</span> <span style=color:#000;font-weight:700>{</span>
+        <span style=color:#000;font-weight:700>super</span><span style=color:#000;font-weight:700>.</span><span style=color:teal>onCreate</span><span style=color:#000;font-weight:700>(</span>savedInstanceState<span style=color:#000;font-weight:700>);</span>
+        setContentView<span style=color:#000;font-weight:700>(</span>R<span style=color:#000;font-weight:700>.</span><span style=color:teal>layout</span><span style=color:#000;font-weight:700>.</span><span style=color:teal>activity_main</span><span style=color:#000;font-weight:700>);</span>
+
+        <span style=color:#998;font-style:italic>//首先获取字段
+</span><span style=color:#998;font-style:italic></span>        String debug_string <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;获取字段\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+        debug_string <span style=color:#000;font-weight:700>+=</span> <span style=color:#d14>&#34;1:普通字段=&gt;&#34;</span> <span style=color:#000;font-weight:700>+</span> get_reflection_field<span style=color:#000;font-weight:700>()</span> <span style=color:#000;font-weight:700>+</span> <span style=color:#d14>&#34;\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+        debug_string <span style=color:#000;font-weight:700>+=</span> <span style=color:#d14>&#34;2:静态字段=&gt;&#34;</span> <span style=color:#000;font-weight:700>+</span> get_static_reflection_field<span style=color:#000;font-weight:700>()</span> <span style=color:#000;font-weight:700>+</span> <span style=color:#d14>&#34;\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+
+<span style=color:#998;font-style:italic>//        Toast.makeText(MainActivity.this, &#34;1:普通字段=&gt;&#34; + get_reflection_field(), Toast.LENGTH_LONG).show();
+</span><span style=color:#998;font-style:italic>//        Toast.makeText(MainActivity.this, &#34;2:静态字段=&gt;&#34; + get_static_reflection_field(), Toast.LENGTH_LONG).show();
+</span><span style=color:#998;font-style:italic></span>
+        <span style=color:#998;font-style:italic>//设置字段
+</span><span style=color:#998;font-style:italic></span>        String set_field <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;Setting Reflection Field&#34;</span><span style=color:#000;font-weight:700>;</span>
+        set_reflection_field<span style=color:#000;font-weight:700>(</span>set_field<span style=color:#000;font-weight:700>);</span>
+        String set_static_field <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;Setting Static Reflection Field&#34;</span><span style=color:#000;font-weight:700>;</span>
+        set_reflection_field<span style=color:#000;font-weight:700>(</span>set_static_field<span style=color:#000;font-weight:700>);</span>
+
+        debug_string <span style=color:#000;font-weight:700>+=</span> <span style=color:#d14>&#34;设置字段\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+        debug_string <span style=color:#000;font-weight:700>+=</span><span style=color:#d14>&#34;3:普通字段=&gt;&#34;</span> <span style=color:#000;font-weight:700>+</span> ReflectionField<span style=color:#000;font-weight:700>+</span><span style=color:#d14>&#34;\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+        debug_string <span style=color:#000;font-weight:700>+=</span><span style=color:#d14>&#34;4:静态字段=&gt;&#34;</span> <span style=color:#000;font-weight:700>+</span> StaticReflectionField<span style=color:#000;font-weight:700>+</span> <span style=color:#d14>&#34;\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+
+        TextView txtOutputDebug<span style=color:#000;font-weight:700>=(</span>TextView<span style=color:#000;font-weight:700>)</span> findViewById<span style=color:#000;font-weight:700>(</span>R<span style=color:#000;font-weight:700>.</span><span style=color:teal>id</span><span style=color:#000;font-weight:700>.</span><span style=color:teal>TextViewDebug</span><span style=color:#000;font-weight:700>);</span>
+        txtOutputDebug<span style=color:#000;font-weight:700>.</span><span style=color:teal>setText</span><span style=color:#000;font-weight:700>(</span>debug_string <span style=color:#000;font-weight:700>);</span>
+
+<span style=color:#998;font-style:italic>//        Toast.makeText(this, &#34;3:普通字段=&gt;&#34; + ReflectionField, Toast.LENGTH_LONG).show();
+</span><span style=color:#998;font-style:italic>//        Toast.makeText(this, &#34;4:静态字段=&gt;&#34; + StaticReflectionField, Toast.LENGTH_LONG).show();
+</span><span style=color:#998;font-style:italic></span>    <span style=color:#000;font-weight:700>}</span>
+
+    <span style=color:#3c5d5d;font-weight:700>@Override</span>
+    <span style=color:#000;font-weight:700>public</span> <span style=color:#458;font-weight:700>boolean</span> <span style=color:#900;font-weight:700>onCreateOptionsMenu</span><span style=color:#000;font-weight:700>(</span>Menu menu<span style=color:#000;font-weight:700>)</span> <span style=color:#000;font-weight:700>{</span>
+        <span style=color:#998;font-style:italic>// Inflate the menu; this adds items to the action bar if it is present.
+</span><span style=color:#998;font-style:italic></span>        getMenuInflater<span style=color:#000;font-weight:700>().</span><span style=color:teal>inflate</span><span style=color:#000;font-weight:700>(</span>R<span style=color:#000;font-weight:700>.</span><span style=color:teal>menu</span><span style=color:#000;font-weight:700>.</span><span style=color:teal>menu_main</span><span style=color:#000;font-weight:700>,</span> menu<span style=color:#000;font-weight:700>);</span>
+        <span style=color:#000;font-weight:700>return</span> <span style=color:#000;font-weight:700>true</span><span style=color:#000;font-weight:700>;</span>
+    <span style=color:#000;font-weight:700>}</span>
+
+    <span style=color:#3c5d5d;font-weight:700>@Override</span>
+    <span style=color:#000;font-weight:700>public</span> <span style=color:#458;font-weight:700>boolean</span> <span style=color:#900;font-weight:700>onOptionsItemSelected</span><span style=color:#000;font-weight:700>(</span>MenuItem item<span style=color:#000;font-weight:700>)</span> <span style=color:#000;font-weight:700>{</span>
+        <span style=color:#998;font-style:italic>// Handle action bar item clicks here. The action bar will
+</span><span style=color:#998;font-style:italic></span>        <span style=color:#998;font-style:italic>// automatically handle clicks on the Home/Up button, so long
+</span><span style=color:#998;font-style:italic></span>        <span style=color:#998;font-style:italic>// as you specify a parent activity in AndroidManifest.xml.
+</span><span style=color:#998;font-style:italic></span>        <span style=color:#458;font-weight:700>int</span> id <span style=color:#000;font-weight:700>=</span> item<span style=color:#000;font-weight:700>.</span><span style=color:teal>getItemId</span><span style=color:#000;font-weight:700>();</span>
+
+        <span style=color:#998;font-style:italic>//noinspection SimplifiableIfStatement
+</span><span style=color:#998;font-style:italic></span>        <span style=color:#000;font-weight:700>if</span> <span style=color:#000;font-weight:700>(</span>id <span style=color:#000;font-weight:700>==</span> R<span style=color:#000;font-weight:700>.</span><span style=color:teal>id</span><span style=color:#000;font-weight:700>.</span><span style=color:teal>action_settings</span><span style=color:#000;font-weight:700>)</span> <span style=color:#000;font-weight:700>{</span>
+            <span style=color:#000;font-weight:700>return</span> <span style=color:#000;font-weight:700>true</span><span style=color:#000;font-weight:700>;</span>
+        <span style=color:#000;font-weight:700>}</span>
+
+        <span style=color:#000;font-weight:700>return</span> <span style=color:#000;font-weight:700>super</span><span style=color:#000;font-weight:700>.</span><span style=color:teal>onOptionsItemSelected</span><span style=color:#000;font-weight:700>(</span>item<span style=color:#000;font-weight:700>);</span>
+    <span style=color:#000;font-weight:700>}</span>
+<span style=color:#000;font-weight:700>}</span>
+</code></pre></td></tr></table></div></div><p>接下来生成jni</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=color:#998;font-style:italic># 因为我这里用的utf-8的字符来保存源文件 所以这里要加上 -encoding UTF-8</span>
+<span style=color:#998;font-style:italic># 否则会出现:   错误: 编码GBK的不可映射字符</span>
+javah  -encoding UTF-8 -jni -d ../jni com.example.jnidemo2.MainActivity
+</code></pre></td></tr></table></div></div><p>这是看到已经生成好了头文件<br><a data-fancybox=gallery href=https://cdn.jsdelivr.net/gh/luodaoyi/luodaoyi.github.io@master/uploads/2020/04/image-1587729538932.png><img class=mx-auto alt=file src=https://cdn.jsdelivr.net/gh/luodaoyi/luodaoyi.github.io@master/uploads/2020/04/image-1587729538932.png></a></p><p>头文件内容如下</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#998;font-style:italic>/* DO NOT EDIT THIS FILE - it is machine generated */</span>
+<span style=color:#999;font-weight:700;font-style:italic>#include</span> <span style=color:#999;font-weight:700;font-style:italic>&lt;jni.h&gt;</span><span style=color:#999;font-weight:700;font-style:italic>
+</span><span style=color:#999;font-weight:700;font-style:italic></span><span style=color:#998;font-style:italic>/* Header for class com_example_jnidemo2_MainActivity */</span>
+
+<span style=color:#999;font-weight:700;font-style:italic>#ifndef _Included_com_example_jnidemo2_MainActivity
+</span><span style=color:#999;font-weight:700;font-style:italic>#define _Included_com_example_jnidemo2_MainActivity
+</span><span style=color:#999;font-weight:700;font-style:italic>#ifdef __cplusplus
+</span><span style=color:#999;font-weight:700;font-style:italic></span><span style=color:#000;font-weight:700>extern</span> <span style=color:#d14>&#34;C&#34;</span> {
+<span style=color:#999;font-weight:700;font-style:italic>#endif
+</span><span style=color:#999;font-weight:700;font-style:italic></span><span style=color:#998;font-style:italic>/*
+</span><span style=color:#998;font-style:italic> * Class:     com_example_jnidemo2_MainActivity
+</span><span style=color:#998;font-style:italic> * Method:    get_reflection_field
+</span><span style=color:#998;font-style:italic> * Signature: ()Ljava/lang/String;
+</span><span style=color:#998;font-style:italic> */</span>
+JNIEXPORT jstring JNICALL <span style=color:#900;font-weight:700>Java_com_example_jnidemo2_MainActivity_get_1reflection_1field</span>
+  (JNIEnv <span style=color:#000;font-weight:700>*</span>, jobject);
+
+<span style=color:#998;font-style:italic>/*
+</span><span style=color:#998;font-style:italic> * Class:     com_example_jnidemo2_MainActivity
+</span><span style=color:#998;font-style:italic> * Method:    get_static_reflection_field
+</span><span style=color:#998;font-style:italic> * Signature: ()Ljava/lang/String;
+</span><span style=color:#998;font-style:italic> */</span>
+JNIEXPORT jstring JNICALL <span style=color:#900;font-weight:700>Java_com_example_jnidemo2_MainActivity_get_1static_1reflection_1field</span>
+  (JNIEnv <span style=color:#000;font-weight:700>*</span>, jobject);
+
+<span style=color:#998;font-style:italic>/*
+</span><span style=color:#998;font-style:italic> * Class:     com_example_jnidemo2_MainActivity
+</span><span style=color:#998;font-style:italic> * Method:    set_reflection_field
+</span><span style=color:#998;font-style:italic> * Signature: (Ljava/lang/String;)V
+</span><span style=color:#998;font-style:italic> */</span>
+JNIEXPORT <span style=color:#458;font-weight:700>void</span> JNICALL <span style=color:#900;font-weight:700>Java_com_example_jnidemo2_MainActivity_set_1reflection_1field</span>
+  (JNIEnv <span style=color:#000;font-weight:700>*</span>, jobject, jstring);
+
+<span style=color:#998;font-style:italic>/*
+</span><span style=color:#998;font-style:italic> * Class:     com_example_jnidemo2_MainActivity
+</span><span style=color:#998;font-style:italic> * Method:    set_static_reflection_field
+</span><span style=color:#998;font-style:italic> * Signature: (Ljava/lang/String;)V
+</span><span style=color:#998;font-style:italic> */</span>
+JNIEXPORT <span style=color:#458;font-weight:700>void</span> JNICALL <span style=color:#900;font-weight:700>Java_com_example_jnidemo2_MainActivity_set_1static_1reflection_1field</span>
+  (JNIEnv <span style=color:#000;font-weight:700>*</span>, jobject, jstring);
+
+<span style=color:#999;font-weight:700;font-style:italic>#ifdef __cplusplus
+</span><span style=color:#999;font-weight:700;font-style:italic></span>}
+<span style=color:#999;font-weight:700;font-style:italic>#endif
+</span><span style=color:#999;font-weight:700;font-style:italic>#endif
+</span></code></pre></td></tr></table></div></div><p>接下来编写cpp文件 实现头文件中的方法</p><p>源码如下</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">57
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp><span style=color:#998;font-style:italic>//
+</span><span style=color:#998;font-style:italic>// Created by asura on 2020/4/24.
+</span><span style=color:#998;font-style:italic>//
+</span><span style=color:#998;font-style:italic></span>
+<span style=color:#999;font-weight:700;font-style:italic>#include</span> <span style=color:#999;font-weight:700;font-style:italic>&#34;com_example_jnidemo2_MainActivity.h&#34;</span><span style=color:#999;font-weight:700;font-style:italic>
+</span><span style=color:#999;font-weight:700;font-style:italic></span>
+<span style=color:#998;font-style:italic>/*
+</span><span style=color:#998;font-style:italic> * Class:     com_example_jnidemo2_MainActivity
+</span><span style=color:#998;font-style:italic> * Method:    get_reflection_field
+</span><span style=color:#998;font-style:italic> * Signature: ()Ljava/lang/String;
+</span><span style=color:#998;font-style:italic> */</span>
+<span style=color:#000;font-weight:700>extern</span> <span style=color:#d14>&#34;C&#34;</span> JNIEXPORT jstring JNICALL
+Java_com_example_jnidemo2_MainActivity_get_1reflection_1field(JNIEnv <span style=color:#000;font-weight:700>*</span>env, jobject obj) {
+    <span style=color:#000;font-weight:700>auto</span> clazz <span style=color:#000;font-weight:700>=</span> env<span style=color:#000;font-weight:700>-&gt;</span>FindClass(<span style=color:#d14>&#34;com/example/jnidemo2/MainActivity&#34;</span>);
+    <span style=color:#000;font-weight:700>auto</span> fieldId <span style=color:#000;font-weight:700>=</span> env<span style=color:#000;font-weight:700>-&gt;</span>GetFieldID(clazz, <span style=color:#d14>&#34;ReflectionField&#34;</span>, <span style=color:#d14>&#34;Ljava/lang/String;&#34;</span>);
+    <span style=color:#000;font-weight:700>auto</span> pJstring <span style=color:#000;font-weight:700>=</span> (jstring) env<span style=color:#000;font-weight:700>-&gt;</span>GetObjectField(obj, fieldId);
+    <span style=color:#000;font-weight:700>return</span> pJstring;
+}
+
+<span style=color:#998;font-style:italic>/*
+</span><span style=color:#998;font-style:italic> * Class:     com_example_jnidemo2_MainActivity
+</span><span style=color:#998;font-style:italic> * Method:    get_static_reflection_field
+</span><span style=color:#998;font-style:italic> * Signature: ()Ljava/lang/String;
+</span><span style=color:#998;font-style:italic> */</span>
+<span style=color:#000;font-weight:700>extern</span> <span style=color:#d14>&#34;C&#34;</span> JNIEXPORT jstring JNICALL
+Java_com_example_jnidemo2_MainActivity_get_1static_1reflection_1field(JNIEnv <span style=color:#000;font-weight:700>*</span>env, jobject obj) {
+    <span style=color:#000;font-weight:700>auto</span> clazz <span style=color:#000;font-weight:700>=</span> env<span style=color:#000;font-weight:700>-&gt;</span>FindClass(<span style=color:#d14>&#34;com/example/jnidemo2/MainActivity&#34;</span>);
+    <span style=color:#000;font-weight:700>auto</span> fieldId <span style=color:#000;font-weight:700>=</span> env<span style=color:#000;font-weight:700>-&gt;</span>GetStaticFieldID(clazz, <span style=color:#d14>&#34;StaticReflectionField&#34;</span>, <span style=color:#d14>&#34;Ljava/lang/String;&#34;</span>);
+    <span style=color:#000;font-weight:700>auto</span> pJstring <span style=color:#000;font-weight:700>=</span> (jstring) env<span style=color:#000;font-weight:700>-&gt;</span>GetStaticObjectField(clazz, fieldId);
+    <span style=color:#000;font-weight:700>return</span> pJstring;
+}
+
+<span style=color:#998;font-style:italic>/*
+</span><span style=color:#998;font-style:italic> * Class:     com_example_jnidemo2_MainActivity
+</span><span style=color:#998;font-style:italic> * Method:    set_reflection_field
+</span><span style=color:#998;font-style:italic> * Signature: (Ljava/lang/String;)V
+</span><span style=color:#998;font-style:italic> */</span>
+<span style=color:#000;font-weight:700>extern</span> <span style=color:#d14>&#34;C&#34;</span> JNIEXPORT <span style=color:#458;font-weight:700>void</span> JNICALL
+Java_com_example_jnidemo2_MainActivity_set_1reflection_1field(JNIEnv <span style=color:#000;font-weight:700>*</span>env, jobject obj,jstring str)
+{
+    <span style=color:#000;font-weight:700>auto</span> clazz <span style=color:#000;font-weight:700>=</span> env<span style=color:#000;font-weight:700>-&gt;</span>FindClass(<span style=color:#d14>&#34;com/example/jnidemo2/MainActivity&#34;</span>);
+    <span style=color:#000;font-weight:700>auto</span> fieldId <span style=color:#000;font-weight:700>=</span> env<span style=color:#000;font-weight:700>-&gt;</span>GetFieldID(clazz, <span style=color:#d14>&#34;ReflectionField&#34;</span>, <span style=color:#d14>&#34;Ljava/lang/String;&#34;</span>);
+    env<span style=color:#000;font-weight:700>-&gt;</span>SetObjectField(obj,fieldId,str);
+}
+
+<span style=color:#998;font-style:italic>/*
+</span><span style=color:#998;font-style:italic> * Class:     com_example_jnidemo2_MainActivity
+</span><span style=color:#998;font-style:italic> * Method:    set_static_reflection_field
+</span><span style=color:#998;font-style:italic> * Signature: (Ljava/lang/String;)V
+</span><span style=color:#998;font-style:italic> */</span>
+<span style=color:#000;font-weight:700>extern</span> <span style=color:#d14>&#34;C&#34;</span> JNIEXPORT <span style=color:#458;font-weight:700>void</span> JNICALL
+Java_com_example_jnidemo2_MainActivity_set_1static_1reflection_1field(JNIEnv <span style=color:#000;font-weight:700>*</span>env, jobject obj, jstring str)
+{
+    <span style=color:#000;font-weight:700>auto</span> clazz <span style=color:#000;font-weight:700>=</span> env<span style=color:#000;font-weight:700>-&gt;</span>FindClass(<span style=color:#d14>&#34;com/example/jnidemo2/MainActivity&#34;</span>);
+    <span style=color:#000;font-weight:700>auto</span> fieldId <span style=color:#000;font-weight:700>=</span> env<span style=color:#000;font-weight:700>-&gt;</span>GetStaticFieldID(clazz, <span style=color:#d14>&#34;StaticReflectionField&#34;</span>, <span style=color:#d14>&#34;Ljava/lang/String;&#34;</span>);
+    env<span style=color:#000;font-weight:700>-&gt;</span>SetStaticObjectField(clazz,fieldId,str);
+}
+</code></pre></td></tr></table></div></div><p>编译后使用模拟器打开</p><p><a data-fancybox=gallery href=https://cdn.jsdelivr.net/gh/luodaoyi/luodaoyi.github.io@master/uploads/2020/04/image-1587733750299.png><img class=mx-auto alt=file src=https://cdn.jsdelivr.net/gh/luodaoyi/luodaoyi.github.io@master/uploads/2020/04/image-1587733750299.png></a><br>成功!!</p><h2 id=2-jni普通方法静态方法调用>2. JNI普通方法，静态方法调用。</h2><p>java代码中增加静态方法和普通方法:</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">57
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">58
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">59
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">60
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">61
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">62
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">63
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">64
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">65
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">66
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">67
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">68
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">69
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">70
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">71
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">72
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">73
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">74
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">75
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">76
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">77
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">78
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">79
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">80
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">81
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">82
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">83
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">84
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">85
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">86
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">87
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">88
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">89
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">90
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">91
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">92
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">93
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">94
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">95
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">96
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">97
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">98
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">99
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java><span style=color:#000;font-weight:700>package</span> <span style=color:#555>com.example.jnidemo2</span><span style=color:#000;font-weight:700>;</span>
+
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>android.os.Bundle</span><span style=color:#000;font-weight:700>;</span>
+
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>com.google.android.material.floatingactionbutton.FloatingActionButton</span><span style=color:#000;font-weight:700>;</span>
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>com.google.android.material.snackbar.Snackbar</span><span style=color:#000;font-weight:700>;</span>
+
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>androidx.appcompat.app.AppCompatActivity</span><span style=color:#000;font-weight:700>;</span>
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>androidx.appcompat.widget.Toolbar</span><span style=color:#000;font-weight:700>;</span>
+
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>android.view.View</span><span style=color:#000;font-weight:700>;</span>
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>android.view.Menu</span><span style=color:#000;font-weight:700>;</span>
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>android.view.MenuItem</span><span style=color:#000;font-weight:700>;</span>
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>android.widget.TextView</span><span style=color:#000;font-weight:700>;</span>
+<span style=color:#000;font-weight:700>import</span> <span style=color:#555>android.widget.Toast</span><span style=color:#000;font-weight:700>;</span>
+
+<span style=color:#000;font-weight:700>public</span> <span style=color:#000;font-weight:700>class</span> <span style=color:#458;font-weight:700>MainActivity</span> <span style=color:#000;font-weight:700>extends</span> AppCompatActivity <span style=color:#000;font-weight:700>{</span>
+
+    <span style=color:#000;font-weight:700>static</span> <span style=color:#000;font-weight:700>{</span>
+        System<span style=color:#000;font-weight:700>.</span><span style=color:teal>loadLibrary</span><span style=color:#000;font-weight:700>(</span><span style=color:#d14>&#34;hello&#34;</span><span style=color:#000;font-weight:700>);</span>
+    <span style=color:#000;font-weight:700>}</span>
+
+    <span style=color:#000;font-weight:700>private</span> String ReflectionField <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;Reflection Field&#34;</span><span style=color:#000;font-weight:700>;</span>
+    <span style=color:#000;font-weight:700>private</span> <span style=color:#000;font-weight:700>static</span> String StaticReflectionField <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;Static Reflection Field&#34;</span><span style=color:#000;font-weight:700>;</span>
+
+    <span style=color:#000;font-weight:700>private</span> <span style=color:#000;font-weight:700>native</span> String <span style=color:#900;font-weight:700>get_reflection_field</span><span style=color:#000;font-weight:700>();</span>
+
+    <span style=color:#000;font-weight:700>private</span> <span style=color:#000;font-weight:700>native</span> String <span style=color:#900;font-weight:700>get_static_reflection_field</span><span style=color:#000;font-weight:700>();</span>
+
+    <span style=color:#000;font-weight:700>private</span> <span style=color:#000;font-weight:700>native</span> <span style=color:#458;font-weight:700>void</span> <span style=color:#900;font-weight:700>set_reflection_field</span><span style=color:#000;font-weight:700>(</span>String value<span style=color:#000;font-weight:700>);</span>
+
+    <span style=color:#000;font-weight:700>private</span> <span style=color:#000;font-weight:700>native</span> <span style=color:#458;font-weight:700>void</span> <span style=color:#900;font-weight:700>set_static_reflection_field</span><span style=color:#000;font-weight:700>(</span>String value<span style=color:#000;font-weight:700>);</span>
+
+    <span style=color:#000;font-weight:700>private</span> <span style=color:#000;font-weight:700>native</span> String <span style=color:#900;font-weight:700>CallMethod</span><span style=color:#000;font-weight:700>(</span>String watermark<span style=color:#000;font-weight:700>);</span>
+
+    <span style=color:#000;font-weight:700>private</span> <span style=color:#000;font-weight:700>native</span> String <span style=color:#900;font-weight:700>CallStaticMethod</span><span style=color:#000;font-weight:700>(</span>String watermark<span style=color:#000;font-weight:700>);</span>
+
+    <span style=color:#000;font-weight:700>private</span> <span style=color:#000;font-weight:700>static</span> String <span style=color:#900;font-weight:700>StaticDemoMethod</span><span style=color:#000;font-weight:700>(</span>String str<span style=color:#000;font-weight:700>)</span> <span style=color:#000;font-weight:700>{</span>
+        <span style=color:#000;font-weight:700>return</span> <span style=color:#d14>&#34;Static Call End&#34;</span> <span style=color:#000;font-weight:700>+</span> str <span style=color:#000;font-weight:700>+</span> <span style=color:#d14>&#34;\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+    <span style=color:#000;font-weight:700>}</span>
+
+    <span style=color:#000;font-weight:700>private</span> String <span style=color:#900;font-weight:700>DemoMethod</span><span style=color:#000;font-weight:700>(</span>String str<span style=color:#000;font-weight:700>)</span> <span style=color:#000;font-weight:700>{</span>
+        <span style=color:#000;font-weight:700>return</span> <span style=color:#d14>&#34;Call End&#34;</span> <span style=color:#000;font-weight:700>+</span> str <span style=color:#000;font-weight:700>+</span> <span style=color:#d14>&#34;\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+    <span style=color:#000;font-weight:700>}</span>
+
+    <span style=color:#3c5d5d;font-weight:700>@Override</span>
+    <span style=color:#000;font-weight:700>protected</span> <span style=color:#458;font-weight:700>void</span> <span style=color:#900;font-weight:700>onCreate</span><span style=color:#000;font-weight:700>(</span>Bundle savedInstanceState<span style=color:#000;font-weight:700>)</span> <span style=color:#000;font-weight:700>{</span>
+        <span style=color:#000;font-weight:700>super</span><span style=color:#000;font-weight:700>.</span><span style=color:teal>onCreate</span><span style=color:#000;font-weight:700>(</span>savedInstanceState<span style=color:#000;font-weight:700>);</span>
+        setContentView<span style=color:#000;font-weight:700>(</span>R<span style=color:#000;font-weight:700>.</span><span style=color:teal>layout</span><span style=color:#000;font-weight:700>.</span><span style=color:teal>activity_main</span><span style=color:#000;font-weight:700>);</span>
+
+        <span style=color:#998;font-style:italic>//首先获取字段
+</span><span style=color:#998;font-style:italic></span>        String debug_string <span style=color:#000;font-weight:700>=</span> <span style=color:#d14>&#34;----------获取字段\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+        debug_string <span style=color:#000;font-weight:700>+=</span> <span style=color:#d14>&#34;1:普通字段=&gt;&#34;</span> <span style=color:#000;font-weight:700>+</span> get_reflection_field<span style=color:#000;font-weight:700>()</span> <span style=color:#000;font-weight:700>+</span> <span style=color:#d14>&#34;\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+        debug_string <span style=color:#000;font-weight:700>+=</span> <span style=color:#d14>&#34;2:静态字段=&gt;&#34;</span> <span style=color:#000;font-weight:700>+</span> get_static_reflection_field<span style=color:#000;font-weight:700>()</span> <span style=color:#000;font-weight:700>+</span> <span style=color:#d14>&#34;\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+
+<span style=color:#998;font-style:italic>//        Toast.makeText(MainActivity.this, &#34;1:普通字段=&gt;&#34; + get_reflection_field(), Toast.LENGTH_LONG).show();
+</span><span style=color:#998;font-style:italic>//        Toast.makeText(MainActivity.this, &#34;2:静态字段=&gt;&#34; + get_static_reflection_field(), Toast.LENGTH_LONG).show();
+</span><span style=color:#998;font-style:italic></span>
+        <span style=color:#998;font-style:italic>//设置字段
+</span><span style=color:#998;font-style:italic></span>        set_reflection_field<span style=color:#000;font-weight:700>(</span><span style=color:#d14>&#34;Setting Reflection Field&#34;</span><span style=color:#000;font-weight:700>);</span>
+        set_static_reflection_field<span style=color:#000;font-weight:700>(</span><span style=color:#d14>&#34;Setting Static Reflection Field&#34;</span><span style=color:#000;font-weight:700>);</span>
+
+        debug_string <span style=color:#000;font-weight:700>+=</span> <span style=color:#d14>&#34;---------------设置字段\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+        debug_string <span style=color:#000;font-weight:700>+=</span> <span style=color:#d14>&#34;3:普通字段=&gt;&#34;</span> <span style=color:#000;font-weight:700>+</span> ReflectionField <span style=color:#000;font-weight:700>+</span> <span style=color:#d14>&#34;\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+        debug_string <span style=color:#000;font-weight:700>+=</span> <span style=color:#d14>&#34;4:静态字段=&gt;&#34;</span> <span style=color:#000;font-weight:700>+</span> StaticReflectionField <span style=color:#000;font-weight:700>+</span> <span style=color:#d14>&#34;\r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+
+<span style=color:#998;font-style:italic>//        Toast.makeText(this, &#34;3:普通字段=&gt;&#34; + ReflectionField, Toast.LENGTH_LONG).show();
+</span><span style=color:#998;font-style:italic>//        Toast.makeText(this, &#34;4:静态字段=&gt;&#34; + StaticReflectionField, Toast.LENGTH_LONG).show();
+</span><span style=color:#998;font-style:italic></span>
+        debug_string <span style=color:#000;font-weight:700>+=</span> <span style=color:#d14>&#34;----------------jni调用 \r\n&#34;</span><span style=color:#000;font-weight:700>;</span>
+        debug_string <span style=color:#000;font-weight:700>+=</span> CallMethod<span style=color:#000;font-weight:700>(</span><span style=color:#d14>&#34;JNI_MARK &#34;</span><span style=color:#000;font-weight:700>);</span>
+        debug_string <span style=color:#000;font-weight:700>+=</span> CallStaticMethod<span style=color:#000;font-weight:700>(</span><span style=color:#d14>&#34;JNI_STATIC_MARK&#34;</span><span style=color:#000;font-weight:700>);</span>
+        TextView txtOutputDebug <span style=color:#000;font-weight:700>=</span> <span style=color:#000;font-weight:700>(</span>TextView<span style=color:#000;font-weight:700>)</span> findViewById<span style=color:#000;font-weight:700>(</span>R<span style=color:#000;font-weight:700>.</span><span style=color:teal>id</span><span style=color:#000;font-weight:700>.</span><span style=color:teal>TextViewDebug</span><span style=color:#000;font-weight:700>);</span>
+        txtOutputDebug<span style=color:#000;font-weight:700>.</span><span style=color:teal>setText</span><span style=color:#000;font-weight:700>(</span>debug_string<span style=color:#000;font-weight:700>);</span>
+    <span style=color:#000;font-weight:700>}</span>
+
+    <span style=color:#3c5d5d;font-weight:700>@Override</span>
+    <span style=color:#000;font-weight:700>public</span> <span style=color:#458;font-weight:700>boolean</span> <span style=color:#900;font-weight:700>onCreateOptionsMenu</span><span style=color:#000;font-weight:700>(</span>Menu menu<span style=color:#000;font-weight:700>)</span> <span style=color:#000;font-weight:700>{</span>
+        <span style=color:#998;font-style:italic>// Inflate the menu; this adds items to the action bar if it is present.
+</span><span style=color:#998;font-style:italic></span>        getMenuInflater<span style=color:#000;font-weight:700>().</span><span style=color:teal>inflate</span><span style=color:#000;font-weight:700>(</span>R<span style=color:#000;font-weight:700>.</span><span style=color:teal>menu</span><span style=color:#000;font-weight:700>.</span><span style=color:teal>menu_main</span><span style=color:#000;font-weight:700>,</span> menu<span style=color:#000;font-weight:700>);</span>
+        <span style=color:#000;font-weight:700>return</span> <span style=color:#000;font-weight:700>true</span><span style=color:#000;font-weight:700>;</span>
+    <span style=color:#000;font-weight:700>}</span>
+
+    <span style=color:#3c5d5d;font-weight:700>@Override</span>
+    <span style=color:#000;font-weight:700>public</span> <span style=color:#458;font-weight:700>boolean</span> <span style=color:#900;font-weight:700>onOptionsItemSelected</span><span style=color:#000;font-weight:700>(</span>MenuItem item<span style=color:#000;font-weight:700>)</span> <span style=color:#000;font-weight:700>{</span>
+        <span style=color:#998;font-style:italic>// Handle action bar item clicks here. The action bar will
+</span><span style=color:#998;font-style:italic></span>        <span style=color:#998;font-style:italic>// automatically handle clicks on the Home/Up button, so long
+</span><span style=color:#998;font-style:italic></span>        <span style=color:#998;font-style:italic>// as you specify a parent activity in AndroidManifest.xml.
+</span><span style=color:#998;font-style:italic></span>        <span style=color:#458;font-weight:700>int</span> id <span style=color:#000;font-weight:700>=</span> item<span style=color:#000;font-weight:700>.</span><span style=color:teal>getItemId</span><span style=color:#000;font-weight:700>();</span>
+
+        <span style=color:#998;font-style:italic>//noinspection SimplifiableIfStatement
+</span><span style=color:#998;font-style:italic></span>        <span style=color:#000;font-weight:700>if</span> <span style=color:#000;font-weight:700>(</span>id <span style=color:#000;font-weight:700>==</span> R<span style=color:#000;font-weight:700>.</span><span style=color:teal>id</span><span style=color:#000;font-weight:700>.</span><span style=color:teal>action_settings</span><span style=color:#000;font-weight:700>)</span> <span style=color:#000;font-weight:700>{</span>
+            <span style=color:#000;font-weight:700>return</span> <span style=color:#000;font-weight:700>true</span><span style=color:#000;font-weight:700>;</span>
+        <span style=color:#000;font-weight:700>}</span>
+
+        <span style=color:#000;font-weight:700>return</span> <span style=color:#000;font-weight:700>super</span><span style=color:#000;font-weight:700>.</span><span style=color:teal>onOptionsItemSelected</span><span style=color:#000;font-weight:700>(</span>item<span style=color:#000;font-weight:700>);</span>
+    <span style=color:#000;font-weight:700>}</span>
+<span style=color:#000;font-weight:700>}</span>
+
+</code></pre></td></tr></table></div></div><p>继续生成头文件 并且书写对应的 代码<br>这里就不放全图了 放个写好的c++ 方法</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-cpp data-lang=cpp>
+<span style=color:#000;font-weight:700>extern</span> <span style=color:#d14>&#34;C&#34;</span> JNIEXPORT jstring JNICALL Java_com_example_jnidemo2_MainActivity_CallMethod
+        (JNIEnv <span style=color:#000;font-weight:700>*</span>env, jobject jobj, jstring watermark) {
+    <span style=color:#000;font-weight:700>auto</span> clazz <span style=color:#000;font-weight:700>=</span> env<span style=color:#000;font-weight:700>-&gt;</span>FindClass(<span style=color:#d14>&#34;com/example/jnidemo2/MainActivity&#34;</span>);
+    <span style=color:#000;font-weight:700>auto</span> method_id <span style=color:#000;font-weight:700>=</span> env<span style=color:#000;font-weight:700>-&gt;</span>GetMethodID(clazz, <span style=color:#d14>&#34;DemoMethod&#34;</span>,
+                                      <span style=color:#d14>&#34;(Ljava/lang/String;)Ljava/lang/String;&#34;</span>);
+    <span style=color:#000;font-weight:700>auto</span> method_return <span style=color:#000;font-weight:700>=</span> (jstring) env<span style=color:#000;font-weight:700>-&gt;</span>CallObjectMethod(jobj, method_id, watermark);
+
+    <span style=color:#000;font-weight:700>return</span> method_return;
+}
+
+<span style=color:#000;font-weight:700>extern</span> <span style=color:#d14>&#34;C&#34;</span> jstring JNICALL Java_com_example_jnidemo2_MainActivity_CallStaticMethod
+        (JNIEnv <span style=color:#000;font-weight:700>*</span>env, jobject jobj, jstring watermark) {
+    <span style=color:#000;font-weight:700>auto</span> clazz <span style=color:#000;font-weight:700>=</span> env<span style=color:#000;font-weight:700>-&gt;</span>FindClass(<span style=color:#d14>&#34;com/example/jnidemo2/MainActivity&#34;</span>);
+    <span style=color:#000;font-weight:700>auto</span> static_method_id <span style=color:#000;font-weight:700>=</span> env<span style=color:#000;font-weight:700>-&gt;</span>GetStaticMethodID(clazz, <span style=color:#d14>&#34;StaticDemoMethod&#34;</span>,
+                                                   <span style=color:#d14>&#34;(Ljava/lang/String;)Ljava/lang/String;&#34;</span>);
+    <span style=color:#000;font-weight:700>auto</span> static_method_return <span style=color:#000;font-weight:700>=</span> (jstring) env<span style=color:#000;font-weight:700>-&gt;</span>CallStaticObjectMethod(clazz, static_method_id,
+                                                                      watermark);
+    <span style=color:#000;font-weight:700>return</span> static_method_return;
+}
+</code></pre></td></tr></table></div></div><p>编译输出:</p><p><a data-fancybox=gallery href=https://cdn.jsdelivr.net/gh/luodaoyi/luodaoyi.github.io@master/uploads/2020/04/image-1587739727905.png><img class=mx-auto alt=file src=https://cdn.jsdelivr.net/gh/luodaoyi/luodaoyi.github.io@master/uploads/2020/04/image-1587739727905.png></a></p><p>代码详见:</p><p><a href=https://github.com/luodaoyi/Android_JNI/tree/master/03_JNI_register2 title=https://github.com/luodaoyi/Android_JNI/tree/master/03_JNI_register2>https://github.com/luodaoyi/Android_JNI/tree/master/03_JNI_register2</a></p></div><div class=post-archive><ul class=post-copyright><li><strong>原文作者：</strong><a rel=author href=https://luodaoyi.com/>Asura</a></li><li style=word-break:break-all><strong>原文链接：</strong><a href=https://luodaoyi.com/p/android%E9%80%86%E5%90%91-jni%E9%9D%99%E6%80%81%E6%B3%A8%E5%86%8Cc%E5%92%8Cjava%E4%BA%A4%E4%BA%92.html>https://luodaoyi.com/p/android%E9%80%86%E5%90%91-jni%E9%9D%99%E6%80%81%E6%B3%A8%E5%86%8Cc%E5%92%8Cjava%E4%BA%A4%E4%BA%92.html</a></li><li><strong>版权声明：</strong>本作品采用<a rel=license href=https://creativecommons.org/licenses/by-nc-nd/4.0/>知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li></ul></div><br><div class=post-archive><h2>See Also</h2><ul class=listing><li><a href=/p/android%E9%80%86%E5%90%91-jni%E9%9D%99%E6%80%81%E6%B3%A8%E5%86%8C.html>Android逆向 JNI静态注册</a></li><li><a href=/p/android%E9%80%86%E5%90%91-%E4%BD%BF%E7%94%A8ndk%E7%BC%96%E8%AF%91c%E8%AF%AD%E8%A8%80%E5%8F%AF%E6%89%A7%E8%A1%8C%E7%A8%8B%E5%BA%8F.html>Android逆向 使用NDK编译c语言可执行程序</a></li><li><a href=/p/android-studio%E5%AE%89%E8%A3%85%E8%AE%B0%E5%BD%95.html>Android Studio安装记录</a></li><li><a href=/p/%E9%80%9A%E8%BF%87sni-proxy%E5%8A%A0%E9%80%9F%E5%9B%BD%E5%86%85%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84wordpress%E6%9B%B4%E6%96%B0.html>通过SNI Proxy加速国内服务器的WordPress更新</a></li><li><a href=/p/%E8%A7%A3%E5%86%B3windows-%E6%97%A0%E6%B3%95%E8%AE%BF%E9%97%AE%E6%8C%87%E5%AE%9A%E8%AE%BE%E5%A4%87%E8%B7%AF%E5%BE%84%E6%88%96%E6%96%87%E4%BB%B6%E4%BD%A0%E5%8F%AF%E8%83%BD%E6%B2%A1.html>解决windows 无法访问指定设备、路径或文件。你可能没有适当的权限访问该项目。</a></li></ul></div><div class="post-meta meta-tags"><ul class=clearfix><li><a href=https://luodaoyi.com/tags/Android%E9%80%86%E5%90%91>Android逆向</a></li><li><a href=https://luodaoyi.com/tags/JNI>JNI</a></li></ul></div></article><div class="post bg-white"><script src=https://utteranc.es/client.js repo=luodaoyi/luodaoyi.github.io issue-term=pathname theme=github-light crossorigin=anonymous async></script></div></div><footer id=footer><p class="text-center text-muted"><span id=busuanzi_container_site_pv style=display:inline>本站总访问量<span id=busuanzi_value_site_pv>0</span>次</span>
+&nbsp;•&nbsp;
+<span id=busuanzi_container_site_uv style=display:inline>访客数<span id=busuanzi_value_site_uv>0</span>人次</span></p><div>&copy; 2020 <a href=https://luodaoyi.com/>Asura的笔记本</a> |
+Powered by <a href=https://gohugo.io/ target=_black rel=nofollow>Hugo</a>
+| <a href=https://www.flysnow.org/ target=_blank rel=nofollow>Theme</a> based on <a href=https://github.com/rujews/maupassant-hugo target=_blank rel=nofollow>maupassant</a>
+| <a rel=nofollow target=_blank href=http://www.beian.miit.gov.cn/>浙ICP备16022429号-2</a></div><br></footer><script type=text/javascript>window.MathJax={tex2jax:{inlineMath:[['$','$']],processEscapes:true}};</script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin=anonymous></script><a id=rocket href=#top></a><script type=text/javascript src="/js/totop.js?v=0.0.0" async></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-82867924-1','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script><script type=text/javascript src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js async></script></div><div id=secondary><section class=widget><form id=search action=https://luodaoyi.com/search/ method=get accept-charset=utf-8 target=_blank _lpchecked=1><input type=text name=q maxlength=20 placeholder=Search>
+<input type=hidden name=sitesearch value=https://luodaoyi.com/>
+<button type=submit class="submit icon-search"></button></form></section><section class=widget><h3 class=widget-title>最近文章</h3><ul class=widget-list><li><a href=https://luodaoyi.com/p/fdaf427cf0.html title=“身份政治”分化了底层人民，“文明冲突”掩盖了阶级矛盾>“身份政治”分化了底层人民，“文明冲突”掩盖了阶级矛盾</a></li><li><a href=https://luodaoyi.com/p/91bcd71816.html title=是时候为自己的利益说话了>是时候为自己的利益说话了</a></li><li><a href=https://luodaoyi.com/p/e4a19eae70.html title=刺激经济，关键不在于印多少钱，而在于怎么发钱>刺激经济，关键不在于印多少钱，而在于怎么发钱</a></li><li><a href=https://luodaoyi.com/p/android%E9%80%86%E5%90%91-%E7%BB%83%E4%B9%A01-%E8%B7%B3%E8%BF%87%E7%AD%BE%E5%90%8D%E9%AA%8C%E8%AF%81.html title="Android逆向 练习1 跳过签名验证">Android逆向 练习1 跳过签名验证</a></li><li><a href=https://luodaoyi.com/p/android%E9%80%86%E5%90%91-arm%E6%B1%87%E7%BC%96%E7%AE%80%E4%BB%8B.html title="Android逆向 ARM汇编简介">Android逆向 ARM汇编简介</a></li><li><a href=https://luodaoyi.com/p/android%E9%80%86%E5%90%91-ndk%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%93.html title="Android逆向 NDK开发总结">Android逆向 NDK开发总结</a></li><li><a href=https://luodaoyi.com/p/android%E9%80%86%E5%90%91-android-studio-jni-%E5%BF%AB%E9%80%9F%E6%9E%84%E5%BB%BA%E9%A1%B9%E7%9B%AE%E5%8A%A8%E6%80%81%E6%B3%A8%E5%86%8C%E7%AE%80%E6%98%93%E8%AE%A1%E7%AE%97%E5%99%A8.html title="Android逆向 Android Studio JNI 快速构建项目+动态注册+简易计算器">Android逆向 Android Studio JNI 快速构建项目+动态注册+简易计算器</a></li><li><a href=https://luodaoyi.com/p/android%E9%80%86%E5%90%91-jni%E9%9D%99%E6%80%81%E6%B3%A8%E5%86%8Cc%E5%92%8Cjava%E4%BA%A4%E4%BA%92.html title="Android逆向 JNI静态注册(c++和java交互)">Android逆向 JNI静态注册(c++和java交互)</a></li><li><a href=https://luodaoyi.com/p/android-studio%E5%AE%89%E8%A3%85%E8%AE%B0%E5%BD%95.html title="Android Studio安装记录">Android Studio安装记录</a></li><li><a href=https://luodaoyi.com/p/android%E9%80%86%E5%90%91-jni%E9%9D%99%E6%80%81%E6%B3%A8%E5%86%8C.html title="Android逆向 JNI静态注册">Android逆向 JNI静态注册</a></li></ul></section><section class=widget><h3 class=widget-title><a href=/categories>分类</a></h3><ul class=widget-list><li><a href=https://luodaoyi.com/categories/Android/>Android (10)</a></li><li><a href=https://luodaoyi.com/categories/C-lang/>C-lang (31)</a></li><li><a href=https://luodaoyi.com/categories/CPP/>CPP (21)</a></li><li><a href=https://luodaoyi.com/categories/CSharp/>CSharp (6)</a></li><li><a href=https://luodaoyi.com/categories/linux/>linux (29)</a></li><li><a href=https://luodaoyi.com/categories/python/>python (7)</a></li><li><a href=https://luodaoyi.com/categories/ruby/>ruby (11)</a></li><li><a href=https://luodaoyi.com/categories/win32/>win32 (24)</a></li><li><a href=https://luodaoyi.com/categories/windwos/>windwos (1)</a></li><li><a href=https://luodaoyi.com/categories/%E5%85%B6%E4%BB%96/>其他 (4)</a></li><li><a href=https://luodaoyi.com/categories/%E5%A5%87%E6%8A%80%E6%B7%AB%E5%B7%A7/>奇技淫巧 (1)</a></li><li><a href=https://luodaoyi.com/categories/%E5%AE%89%E5%85%A8/>安全 (27)</a></li><li><a href=https://luodaoyi.com/categories/%E5%AE%89%E5%85%A8%E9%80%86%E5%90%91/>安全逆向 (1)</a></li><li><a href=https://luodaoyi.com/categories/%E5%B7%A5%E5%85%B7/>工具 (15)</a></li><li><a href=https://luodaoyi.com/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/>数据库 (1)</a></li><li><a href=https://luodaoyi.com/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/>数据结构 (1)</a></li><li><a href=https://luodaoyi.com/categories/%E6%96%87%E5%AD%A6/>文学 (10)</a></li><li><a href=https://luodaoyi.com/categories/%E6%9C%AA%E5%88%86%E7%B1%BB/>未分类 (2)</a></li><li><a href=https://luodaoyi.com/categories/%E6%B1%87%E7%BC%96/>汇编 (14)</a></li><li><a href=https://luodaoyi.com/categories/%E7%BB%8F%E6%B5%8E/>经济 (41)</a></li><li><a href=https://luodaoyi.com/categories/%E8%BD%AC%E8%BD%BD/>转载 (59)</a></li><li><a href=https://luodaoyi.com/categories/%E9%80%86%E5%90%91/>逆向 (6)</a></li><li><a href=https://luodaoyi.com/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/>驱动开发 (1)</a></li></ul></section><section class=widget><h3 class=widget-title><a href=/tags>标签</a></h3><div class=tagcloud><a href=https://luodaoyi.com/tags/.net/>.net</a>
+<a href=https://luodaoyi.com/tags/ARM/>ARM</a>
+<a href=https://luodaoyi.com/tags/Android%E9%80%86%E5%90%91/>Android逆向</a>
+<a href=https://luodaoyi.com/tags/C/>C</a>
+<a href=https://luodaoyi.com/tags/CPU/>CPU</a>
+<a href=https://luodaoyi.com/tags/C%E8%AF%AD%E8%A8%80/>C语言</a>
+<a href=https://luodaoyi.com/tags/Hook/>Hook</a>
+<a href=https://luodaoyi.com/tags/JNI/>JNI</a>
+<a href=https://luodaoyi.com/tags/MetaTrader/>MetaTrader</a>
+<a href=https://luodaoyi.com/tags/Ruby/>Ruby</a>
+<a href=https://luodaoyi.com/tags/SVN/>SVN</a>
+<a href=https://luodaoyi.com/tags/asp.net/>asp.net</a>
+<a href=https://luodaoyi.com/tags/asp.net-mvc/>asp.net mvc</a>
+<a href=https://luodaoyi.com/tags/cpp/>cpp</a>
+<a href=https://luodaoyi.com/tags/csharp/>csharp</a>
+<a href=https://luodaoyi.com/tags/debian/>debian</a>
+<a href=https://luodaoyi.com/tags/develop/>develop</a>
+<a href=https://luodaoyi.com/tags/docker/>docker</a>
+<a href=https://luodaoyi.com/tags/dsm/>dsm</a>
+<a href=https://luodaoyi.com/tags/google/>google</a>
+<a href=https://luodaoyi.com/tags/kali/>kali</a>
+<a href=https://luodaoyi.com/tags/kms/>kms</a>
+<a href=https://luodaoyi.com/tags/linux/>linux</a>
+<a href=https://luodaoyi.com/tags/markdown/>markdown</a>
+<a href=https://luodaoyi.com/tags/minio/>minio</a>
+<a href=https://luodaoyi.com/tags/mql/>mql</a>
+<a href=https://luodaoyi.com/tags/nginx/>nginx</a>
+<a href=https://luodaoyi.com/tags/nuget/>nuget</a>
+<a href=https://luodaoyi.com/tags/office/>office</a>
+<a href=https://luodaoyi.com/tags/python/>python</a>
+<a href=https://luodaoyi.com/tags/s3/>s3</a>
+<a href=https://luodaoyi.com/tags/ssl/>ssl</a>
+<a href=https://luodaoyi.com/tags/sublimetext/>sublimetext</a>
+<a href=https://luodaoyi.com/tags/ubuntu/>ubuntu</a>
+<a href=https://luodaoyi.com/tags/vc6/>vc6</a>
+<a href=https://luodaoyi.com/tags/visualstudio/>visualstudio</a>
+<a href=https://luodaoyi.com/tags/vm/>vm</a>
+<a href=https://luodaoyi.com/tags/web%E5%AE%89%E5%85%A8/>web安全</a>
+<a href=https://luodaoyi.com/tags/wifi%E5%AE%89%E5%85%A8/>wifi安全</a>
+<a href=https://luodaoyi.com/tags/win32/>win32</a>
+<a href=https://luodaoyi.com/tags/windows/>windows</a>
+<a href=https://luodaoyi.com/tags/winform/>winform</a>
+<a href=https://luodaoyi.com/tags/wordpress/>wordpress</a>
+<a href=https://luodaoyi.com/tags/x86/>x86</a>
+<a href=https://luodaoyi.com/tags/%E4%B8%8B%E8%BD%BD/>下载</a>
+<a href=https://luodaoyi.com/tags/%E5%86%85%E5%AD%98/>内存</a>
+<a href=https://luodaoyi.com/tags/%E5%AE%89%E5%85%A8/>安全</a>
+<a href=https://luodaoyi.com/tags/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/>安卓逆向</a>
+<a href=https://luodaoyi.com/tags/%E5%AF%84%E5%AD%98%E5%99%A8/>寄存器</a>
+<a href=https://luodaoyi.com/tags/%E5%AF%86%E7%A0%81%E5%AE%89%E5%85%A8/>密码安全</a>
+<a href=https://luodaoyi.com/tags/%E5%B7%A5%E5%85%B7/>工具</a>
+<a href=https://luodaoyi.com/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/>数据结构</a>
+<a href=https://luodaoyi.com/tags/%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90/>文件权限</a>
+<a href=https://luodaoyi.com/tags/%E6%B1%87%E7%BC%96/>汇编</a>
+<a href=https://luodaoyi.com/tags/%E6%BF%80%E6%B4%BB%E7%A0%81/>激活码</a>
+<a href=https://luodaoyi.com/tags/%E7%88%86%E7%A0%B4/>爆破</a>
+<a href=https://luodaoyi.com/tags/%E7%89%A9%E7%90%86%E5%AD%A6/>物理学</a>
+<a href=https://luodaoyi.com/tags/%E7%9B%91%E6%8E%A7/>监控</a>
+<a href=https://luodaoyi.com/tags/%E7%A0%B4%E8%A7%A3/>破解</a>
+<a href=https://luodaoyi.com/tags/%E7%A1%AC%E7%BC%96%E7%A0%81/>硬编码</a>
+<a href=https://luodaoyi.com/tags/%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8/>系统安全</a>
+<a href=https://luodaoyi.com/tags/%E7%BB%8F%E6%B5%8E/>经济</a>
+<a href=https://luodaoyi.com/tags/%E7%BD%91%E7%BB%9C/>网络</a>
+<a href=https://luodaoyi.com/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA/>计算机</a>
+<a href=https://luodaoyi.com/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BC%96%E7%A0%81/>计算机编码</a>
+<a href=https://luodaoyi.com/tags/%E8%BF%90%E7%BB%B4/>运维</a>
+<a href=https://luodaoyi.com/tags/%E9%80%86%E5%90%91/>逆向</a>
+<a href=https://luodaoyi.com/tags/%E9%A9%B1%E5%8A%A8/>驱动</a></div></section><section class=widget><h3 class=widget-title>其它</h3><ul class=widget-list><li><a href=https://luodaoyi.com/index.xml>文章 RSS</a></li></ul></section></div></div></div></div></body></html>
