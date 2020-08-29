@@ -1,0 +1,107 @@
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1"><title>远程线程注入 | Asura的笔记本</title><meta property="og:title" content="远程线程注入 - Asura的笔记本"><meta property="og:type" content="article"><meta property="article:published_time" content="2018-05-22T21:53:12+08:00"><meta property="article:modified_time" content="2018-05-22T21:53:12+08:00"><meta name=Keywords content="docker,linux,逆向,汇编,win32"><meta name=description content="远程线程注入"><meta name=author content="Asura"><meta property="og:url" content="https://luodaoyi.com/p/remote-thread-injection-1.html"><link rel="shortcut icon" href=/favicon.ico type=image/x-icon><link rel=stylesheet href=/css/normalize.css><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin=anonymous async></head><body><header id=header class=clearfix><div class=container><div class=col-group><div class=site-name><a id=logo href=https://luodaoyi.com/>Asura的笔记本</a><p class=description>众生皆苦，奈何人间处处是修罗战场</p></div><div><nav id=nav-menu class=clearfix><a class=current href=https://luodaoyi.com/>首页</a>
+<a href=https://luodaoyi.com/archive.html title=归档>归档</a>
+<a href=https://luodaoyi.com/p/ben-zhan-shang-xiankms-fu-wuyi-ju-ming-ling-ji-huo.html title=KMS>KMS</a></nav></div></div></div></header><div id=body><div class=container><div class=col-group><div class=col-8 id=main><div class=res-cons><article class=post><header><h1 class=post-title>远程线程注入</h1></header><date class="post-meta meta-date">2018年5月22日</date><div class=post-meta><span>|</span>
+<span class=meta-category><a href=https://luodaoyi.com/categories/win32>win32</a></span></div><div class=post-meta><span id=busuanzi_container_page_pv>|
+<span id=busuanzi_value_page_pv></span><span>阅读</span></span></div><div class=post-content><h1 id=远程线程注入>远程线程注入</h1><p><a data-fancybox=gallery href=https://cdn.jsdelivr.net/gh/luodaoyi/luodaoyi.github.io@master/uploads/oss/2018-05-22-15269971337952.jpg><img class=mx-auto alt src=https://cdn.jsdelivr.net/gh/luodaoyi/luodaoyi.github.io@master/uploads/oss/2018-05-22-15269971337952.jpg></a></p><h2 id=线程是什么>线程是什么</h2><p>如果说进程是个大房子，那么线程是进程中干活的人</p><p>线程是进程的<code>灵魂</code><br><code>使用进程提供的数据 执行进程提供的代码</code><br>临时数据存储在计算机的寄存器中</p><h2 id=创建线程>创建线程</h2><pre><code>//在自己的进程中创建线程
+CreateThread()
+//在别人的进程中创建线程
+HANDLE WINAPI CreateRemoteThread
+（
+     _In_     HANDLE hProcess，    //目标进程句柄
+      _In_     LPSECURITY_ATTRIBUTES lpThreadAttributes，
+      _In_     SIZE_T dwStackSize，    //目标线程栈大小
+      _In_     LPTHREAD_START_ROUTINE lpStartAddress，//目标线程地址
+      _In_     LPVOID lpParameter，    //目标线程参数
+     _In_     DWORD dwCreationFlags，//创建标志位
+     _Out_  LPDWORD lpThreadId    //返回被创建线程的ID
+）;
+</code></pre><h2 id=远程线程注入的关键点>远程线程注入的关键点</h2><ol><li>通过<code>CreateRemoteThread</code>创建线程</li><li>被创建的线程的本体在<code>目标进程内部</code></li><li>被创建的线程使用的各类资源<code>均依赖于目标进程</code></li></ol><p>思考：</p><p>如果利用之前学习过的知识将我们想要实现的代码加入到目标进程中去？</p><h2 id=远程线程的几个关键点>远程线程的几个关键点</h2><ol><li>被创建的线程在别的进程中执行</li><li>呗创建的线程锁依赖的代码或数据<code>都来自于目标进程</code></li></ol><p>如果想要在目标进程中干我们想干的事，我们就需要吧自己的功能代码加入到目标进程内部，这个也就是常说的代码注入</p><p>我们目前学过的知识就可以实现一些注入的功能</p><ol><li>内存的操作</li><li>动态链接库</li></ol><h2 id=通过直接读写内存的方式>通过直接读写内存的方式</h2><ol><li>利用<code>VirtualAllocEx</code>在目标进程中申请一段内存空间</li><li>通过<code>WriteProcessMemory</code>在目标进程中刚申请的空间内将我们的功能代码的硬编码写入</li><li>CreateRemoteThread 启动我们的目标代码</li></ol><p>优点： 操作简单不易呗发现<br>缺点: 因为远程线程锁执行的代码和利用的资源只能是目标进程提供的，那么我们写入的这段硬编码必须得脱离其他依赖独立运行，只能直接调用API，不能使用静态库提供的函数，不能直接使用动态库使用的函数，不能出现随意的调用或者jmp，在构造这种代码的时候会非常复杂，当然按照以上要求构造出来的代码我们还有一种叫法，叫做<code>ShellCode</code></p><h2 id=dllmain>DllMain</h2><pre><code>BOOL WINAPI DllMain
+(
+        HINSTANCE hinstDLL;//DLL模块举办(DLL 被加载的位置)
+        DWORD fwdReason, //  制定本地DLLMain被调用的原因
+        LPVOID ipvReserved; //保留位
+)
+//fdwReason的一些宏说明：
+DLL_PROCESS_ATTACH:
+      当进程第一次将该DLL映射到内存空间时，我们的进程就会调用一次这个DllMain并传入这个参数
+DLL_PROCESS_DETACH:
+      当进程将当前DLL从内存空间解除映射的时候，就会调用一次DllMain并传入这个参数
+DLL_THREAD_ATTCH:
+      每当有一个新的线程创建，都会调用一次DllMain并传入这个参数
+DLL_THREAD_DEACH:
+      每当有一个线程结束(ExitThread)时就会调用一次DllMain并传入这个参数，如果线程是因为TerminateThread函数而结束的则不会调用
+</code></pre><h2 id=通过动态链接库的方式>通过动态链接库的方式</h2><ol><li>利用一些手段加载带有我们功能函数的DLL</li><li>通过DLLMAIN来启动我们的功能</li></ol><p>优点：操作简单实现也简单，写在DLL中的功能函数不需要想 <code>ShellCode那样做到什么也不依赖</code>，因为DLL被加载后重定位会替我们搞定这些麻烦事，所以在DLL中可以像写我们普通的正常程序一样来写我们的功能代码<br>缺点：容易被检测</p><p>加载DLL：</p><p><a data-fancybox=gallery href=https://cdn.jsdelivr.net/gh/luodaoyi/luodaoyi.github.io@master/uploads/oss/2018-05-22-15269971671439.jpg><img class=mx-auto alt src=https://cdn.jsdelivr.net/gh/luodaoyi/luodaoyi.github.io@master/uploads/oss/2018-05-22-15269971671439.jpg></a></p></div><div class=post-archive><ul class=post-copyright><li><strong>原文作者：</strong><a rel=author href=https://luodaoyi.com/>Asura</a></li><li style=word-break:break-all><strong>原文链接：</strong><a href=https://luodaoyi.com/p/remote-thread-injection-1.html>https://luodaoyi.com/p/remote-thread-injection-1.html</a></li><li><strong>版权声明：</strong>本作品采用<a rel=license href=https://creativecommons.org/licenses/by-nc-nd/4.0/>知识共享署名-非商业性使用-禁止演绎 4.0 国际许可协议</a>进行许可，非商业转载请注明出处（作者，原文链接），商业转载请联系作者获得授权。</li></ul></div><br><div class=post-archive><h2>See Also</h2><ul class=listing><li><a href=/p/dynamic-link-library.html>动态链接库</a></li><li><a href=/p/static-link-library.html>静态链接库</a></li><li><a href=/p/a-memory-exchange-file-with-a-file-as-a-back-store.html>以文件为后背存储区的内存交换文件</a></li><li><a href=/p/page-exchange-file-and-memory-mapping-file.html>页交换文件与内存映射文件</a></li><li><a href=/p/the-relationship-between-physical-memory-and-virtual-memory.html>物理内存和虚拟内存的关系</a></li></ul></div><div class="post-meta meta-tags"><ul class=clearfix><li><a href=https://luodaoyi.com/tags/win32>win32</a></li></ul></div></article><div class="post bg-white"><script src=https://utteranc.es/client.js repo=luodaoyi/luodaoyi.github.io issue-term=pathname theme=github-light crossorigin=anonymous async></script></div></div><footer id=footer><p class="text-center text-muted"><span id=busuanzi_container_site_pv style=display:inline>本站总访问量<span id=busuanzi_value_site_pv>0</span>次</span>
+&nbsp;•&nbsp;
+<span id=busuanzi_container_site_uv style=display:inline>访客数<span id=busuanzi_value_site_uv>0</span>人次</span></p><div>&copy; 2020 <a href=https://luodaoyi.com/>Asura的笔记本</a> |
+Powered by <a href=https://gohugo.io/ target=_black rel=nofollow>Hugo</a>
+| <a href=https://www.flysnow.org/ target=_blank rel=nofollow>Theme</a> based on <a href=https://github.com/rujews/maupassant-hugo target=_blank rel=nofollow>maupassant</a>
+| <a rel=nofollow target=_blank href=http://www.beian.miit.gov.cn/>浙ICP备16022429号-2</a></div><br></footer><script src=https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin=anonymous></script><script type=text/javascript>window.MathJax={tex2jax:{inlineMath:[['$','$']],processEscapes:true}};</script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML" async></script><script src=https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin=anonymous></script><a id=rocket href=#top></a><script type=text/javascript src="/js/totop.js?v=0.0.0" async></script><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-82867924-1','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script><script type=text/javascript src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js async></script></div><div id=secondary><section class=widget><form id=search action=https://luodaoyi.com/search/ method=get accept-charset=utf-8 target=_blank _lpchecked=1><input type=text name=q maxlength=20 placeholder=Search>
+<input type=hidden name=sitesearch value=https://luodaoyi.com/>
+<button type=submit class="submit icon-search"></button></form></section><section class=widget><h3 class=widget-title>最近文章</h3><ul class=widget-list><li><a href=https://luodaoyi.com/p/fdaf427cf0.html title=“身份政治”分化了底层人民，“文明冲突”掩盖了阶级矛盾>“身份政治”分化了底层人民，“文明冲突”掩盖了阶级矛盾</a></li><li><a href=https://luodaoyi.com/p/91bcd71816.html title=是时候为自己的利益说话了>是时候为自己的利益说话了</a></li><li><a href=https://luodaoyi.com/p/e4a19eae70.html title=刺激经济，关键不在于印多少钱，而在于怎么发钱>刺激经济，关键不在于印多少钱，而在于怎么发钱</a></li><li><a href=https://luodaoyi.com/p/android%E9%80%86%E5%90%91-%E7%BB%83%E4%B9%A01-%E8%B7%B3%E8%BF%87%E7%AD%BE%E5%90%8D%E9%AA%8C%E8%AF%81.html title="Android逆向 练习1 跳过签名验证">Android逆向 练习1 跳过签名验证</a></li><li><a href=https://luodaoyi.com/p/android%E9%80%86%E5%90%91-arm%E6%B1%87%E7%BC%96%E7%AE%80%E4%BB%8B.html title="Android逆向 ARM汇编简介">Android逆向 ARM汇编简介</a></li><li><a href=https://luodaoyi.com/p/android%E9%80%86%E5%90%91-ndk%E5%BC%80%E5%8F%91%E6%80%BB%E7%BB%93.html title="Android逆向 NDK开发总结">Android逆向 NDK开发总结</a></li><li><a href=https://luodaoyi.com/p/android%E9%80%86%E5%90%91-android-studio-jni-%E5%BF%AB%E9%80%9F%E6%9E%84%E5%BB%BA%E9%A1%B9%E7%9B%AE%E5%8A%A8%E6%80%81%E6%B3%A8%E5%86%8C%E7%AE%80%E6%98%93%E8%AE%A1%E7%AE%97%E5%99%A8.html title="Android逆向 Android Studio JNI 快速构建项目+动态注册+简易计算器">Android逆向 Android Studio JNI 快速构建项目+动态注册+简易计算器</a></li><li><a href=https://luodaoyi.com/p/android%E9%80%86%E5%90%91-jni%E9%9D%99%E6%80%81%E6%B3%A8%E5%86%8Cc%E5%92%8Cjava%E4%BA%A4%E4%BA%92.html title="Android逆向 JNI静态注册(c++和java交互)">Android逆向 JNI静态注册(c++和java交互)</a></li><li><a href=https://luodaoyi.com/p/android-studio%E5%AE%89%E8%A3%85%E8%AE%B0%E5%BD%95.html title="Android Studio安装记录">Android Studio安装记录</a></li><li><a href=https://luodaoyi.com/p/android%E9%80%86%E5%90%91-jni%E9%9D%99%E6%80%81%E6%B3%A8%E5%86%8C.html title="Android逆向 JNI静态注册">Android逆向 JNI静态注册</a></li></ul></section><section class=widget><h3 class=widget-title><a href=/categories>分类</a></h3><ul class=widget-list><li><a href=https://luodaoyi.com/categories/Android/>Android (10)</a></li><li><a href=https://luodaoyi.com/categories/C-lang/>C-lang (31)</a></li><li><a href=https://luodaoyi.com/categories/CPP/>CPP (21)</a></li><li><a href=https://luodaoyi.com/categories/CSharp/>CSharp (6)</a></li><li><a href=https://luodaoyi.com/categories/linux/>linux (29)</a></li><li><a href=https://luodaoyi.com/categories/python/>python (7)</a></li><li><a href=https://luodaoyi.com/categories/ruby/>ruby (11)</a></li><li><a href=https://luodaoyi.com/categories/win32/>win32 (24)</a></li><li><a href=https://luodaoyi.com/categories/windwos/>windwos (1)</a></li><li><a href=https://luodaoyi.com/categories/%E5%85%B6%E4%BB%96/>其他 (4)</a></li><li><a href=https://luodaoyi.com/categories/%E5%A5%87%E6%8A%80%E6%B7%AB%E5%B7%A7/>奇技淫巧 (1)</a></li><li><a href=https://luodaoyi.com/categories/%E5%AE%89%E5%85%A8/>安全 (27)</a></li><li><a href=https://luodaoyi.com/categories/%E5%AE%89%E5%85%A8%E9%80%86%E5%90%91/>安全逆向 (1)</a></li><li><a href=https://luodaoyi.com/categories/%E5%B7%A5%E5%85%B7/>工具 (15)</a></li><li><a href=https://luodaoyi.com/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/>数据库 (1)</a></li><li><a href=https://luodaoyi.com/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/>数据结构 (1)</a></li><li><a href=https://luodaoyi.com/categories/%E6%96%87%E5%AD%A6/>文学 (10)</a></li><li><a href=https://luodaoyi.com/categories/%E6%9C%AA%E5%88%86%E7%B1%BB/>未分类 (2)</a></li><li><a href=https://luodaoyi.com/categories/%E6%B1%87%E7%BC%96/>汇编 (14)</a></li><li><a href=https://luodaoyi.com/categories/%E7%BB%8F%E6%B5%8E/>经济 (41)</a></li><li><a href=https://luodaoyi.com/categories/%E8%BD%AC%E8%BD%BD/>转载 (59)</a></li><li><a href=https://luodaoyi.com/categories/%E9%80%86%E5%90%91/>逆向 (6)</a></li><li><a href=https://luodaoyi.com/categories/%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/>驱动开发 (1)</a></li></ul></section><section class=widget><h3 class=widget-title><a href=/tags>标签</a></h3><div class=tagcloud><a href=https://luodaoyi.com/tags/.net/>.net</a>
+<a href=https://luodaoyi.com/tags/ARM/>ARM</a>
+<a href=https://luodaoyi.com/tags/Android%E9%80%86%E5%90%91/>Android逆向</a>
+<a href=https://luodaoyi.com/tags/C/>C</a>
+<a href=https://luodaoyi.com/tags/CPU/>CPU</a>
+<a href=https://luodaoyi.com/tags/C%E8%AF%AD%E8%A8%80/>C语言</a>
+<a href=https://luodaoyi.com/tags/Hook/>Hook</a>
+<a href=https://luodaoyi.com/tags/JNI/>JNI</a>
+<a href=https://luodaoyi.com/tags/MetaTrader/>MetaTrader</a>
+<a href=https://luodaoyi.com/tags/Ruby/>Ruby</a>
+<a href=https://luodaoyi.com/tags/SVN/>SVN</a>
+<a href=https://luodaoyi.com/tags/asp.net/>asp.net</a>
+<a href=https://luodaoyi.com/tags/asp.net-mvc/>asp.net mvc</a>
+<a href=https://luodaoyi.com/tags/cpp/>cpp</a>
+<a href=https://luodaoyi.com/tags/csharp/>csharp</a>
+<a href=https://luodaoyi.com/tags/debian/>debian</a>
+<a href=https://luodaoyi.com/tags/develop/>develop</a>
+<a href=https://luodaoyi.com/tags/docker/>docker</a>
+<a href=https://luodaoyi.com/tags/dsm/>dsm</a>
+<a href=https://luodaoyi.com/tags/google/>google</a>
+<a href=https://luodaoyi.com/tags/kali/>kali</a>
+<a href=https://luodaoyi.com/tags/kms/>kms</a>
+<a href=https://luodaoyi.com/tags/linux/>linux</a>
+<a href=https://luodaoyi.com/tags/markdown/>markdown</a>
+<a href=https://luodaoyi.com/tags/minio/>minio</a>
+<a href=https://luodaoyi.com/tags/mql/>mql</a>
+<a href=https://luodaoyi.com/tags/nginx/>nginx</a>
+<a href=https://luodaoyi.com/tags/nuget/>nuget</a>
+<a href=https://luodaoyi.com/tags/office/>office</a>
+<a href=https://luodaoyi.com/tags/python/>python</a>
+<a href=https://luodaoyi.com/tags/s3/>s3</a>
+<a href=https://luodaoyi.com/tags/ssl/>ssl</a>
+<a href=https://luodaoyi.com/tags/sublimetext/>sublimetext</a>
+<a href=https://luodaoyi.com/tags/ubuntu/>ubuntu</a>
+<a href=https://luodaoyi.com/tags/vc6/>vc6</a>
+<a href=https://luodaoyi.com/tags/visualstudio/>visualstudio</a>
+<a href=https://luodaoyi.com/tags/vm/>vm</a>
+<a href=https://luodaoyi.com/tags/web%E5%AE%89%E5%85%A8/>web安全</a>
+<a href=https://luodaoyi.com/tags/wifi%E5%AE%89%E5%85%A8/>wifi安全</a>
+<a href=https://luodaoyi.com/tags/win32/>win32</a>
+<a href=https://luodaoyi.com/tags/windows/>windows</a>
+<a href=https://luodaoyi.com/tags/winform/>winform</a>
+<a href=https://luodaoyi.com/tags/wordpress/>wordpress</a>
+<a href=https://luodaoyi.com/tags/x86/>x86</a>
+<a href=https://luodaoyi.com/tags/%E4%B8%8B%E8%BD%BD/>下载</a>
+<a href=https://luodaoyi.com/tags/%E5%86%85%E5%AD%98/>内存</a>
+<a href=https://luodaoyi.com/tags/%E5%AE%89%E5%85%A8/>安全</a>
+<a href=https://luodaoyi.com/tags/%E5%AE%89%E5%8D%93%E9%80%86%E5%90%91/>安卓逆向</a>
+<a href=https://luodaoyi.com/tags/%E5%AF%84%E5%AD%98%E5%99%A8/>寄存器</a>
+<a href=https://luodaoyi.com/tags/%E5%AF%86%E7%A0%81%E5%AE%89%E5%85%A8/>密码安全</a>
+<a href=https://luodaoyi.com/tags/%E5%B7%A5%E5%85%B7/>工具</a>
+<a href=https://luodaoyi.com/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/>数据结构</a>
+<a href=https://luodaoyi.com/tags/%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90/>文件权限</a>
+<a href=https://luodaoyi.com/tags/%E6%B1%87%E7%BC%96/>汇编</a>
+<a href=https://luodaoyi.com/tags/%E6%BF%80%E6%B4%BB%E7%A0%81/>激活码</a>
+<a href=https://luodaoyi.com/tags/%E7%88%86%E7%A0%B4/>爆破</a>
+<a href=https://luodaoyi.com/tags/%E7%89%A9%E7%90%86%E5%AD%A6/>物理学</a>
+<a href=https://luodaoyi.com/tags/%E7%9B%91%E6%8E%A7/>监控</a>
+<a href=https://luodaoyi.com/tags/%E7%A0%B4%E8%A7%A3/>破解</a>
+<a href=https://luodaoyi.com/tags/%E7%A1%AC%E7%BC%96%E7%A0%81/>硬编码</a>
+<a href=https://luodaoyi.com/tags/%E7%B3%BB%E7%BB%9F%E5%AE%89%E5%85%A8/>系统安全</a>
+<a href=https://luodaoyi.com/tags/%E7%BB%8F%E6%B5%8E/>经济</a>
+<a href=https://luodaoyi.com/tags/%E7%BD%91%E7%BB%9C/>网络</a>
+<a href=https://luodaoyi.com/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA/>计算机</a>
+<a href=https://luodaoyi.com/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BC%96%E7%A0%81/>计算机编码</a>
+<a href=https://luodaoyi.com/tags/%E8%BF%90%E7%BB%B4/>运维</a>
+<a href=https://luodaoyi.com/tags/%E9%80%86%E5%90%91/>逆向</a>
+<a href=https://luodaoyi.com/tags/%E9%A9%B1%E5%8A%A8/>驱动</a></div></section><section class=widget><h3 class=widget-title>其它</h3><ul class=widget-list><li><a href=https://luodaoyi.com/index.xml>文章 RSS</a></li></ul></section></div></div></div></div></body></html>
