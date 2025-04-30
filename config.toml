@@ -1491,7 +1491,7 @@ uglyURLs = false
         # 邮箱
         email = "luodaoyi@gmail.com"
         # 座右铭或简介
-        motto = "Happy"
+        motto = "能用就行"
         # 头像
         avatar = "/icons/apple-touch-icon.png"
         # 网站（默认值：baseURL）
