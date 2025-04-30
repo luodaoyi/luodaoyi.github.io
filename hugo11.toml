@@ -1,0 +1,73 @@
+baseURL = 'https://luodaoyi.com/'
+languageCode = "zh-CN"
+title = '虾写'
+theme = 'maupassant'
+googleAnalytics = "G-RETF4GNY56" 
+
+## 保持分类的原始名字（false会做转小写处理）
+preserveTaxonomyNames = true
+## 是否禁止URL Path转小写
+disablePathToLower = true
+
+hasCJKLanguage = true
+summaryLength = 140
+
+[author]
+  name = "Asura"
+
+[params]
+  author = "Asura"
+  subtitle = "精通ASM/C/C++/RUST/C#/Java/JavaScript/Python/Golang/ruby 的Hello World 编写" 
+  description = "精通ASM/C/C++/RUST/C#/Java/JavaScript/Python/Golang/ruby 的Hello World 编写"
+  busuanzi = true #启用不算子网页统计
+  googleAd = ""  #ca-pub-xxxxxxxxxxxxxx
+  localSearch = true # 启用本地搜索
+
+  # 这里我存放在了主题的static文件夹里，根目录的似乎也可以
+  #customCSS = ['douban.css', 'other.css']
+  # if ['custom.css'], load '/static/css/custom.css' file
+  customJS = ['fuckyou.js']
+  # if ['custom.js'], load '/static/js/custom.js' file
+
+  # 全局开关，你也可以在每一篇内容的 front matter 中针对单篇内容关闭或开启某些功能
+  toc = true  # 是否开启目录
+  fancybox = true
+
+## 配置 utteranc评论,教程参考 https://utteranc.es/
+[params.utteranc]
+  enable = true
+  repo = "luodaoyi/blog-discussion" ##换成自己得
+  issueTerm = "og:title"
+  theme = "github-light"
+
+[markup] 
+  [markup.highlight]
+    guessSyntax = true    
+    style = "github"
+
+[menu] 
+
+  [[menu.main]]
+    identifier = "archives"
+    name = "归档"
+    url = "/archives/"
+    weight = 2 
+  [[menu.main]]
+    identifier = "tags"
+    name = "标签"
+    url = "/tags/"
+    weight = 2
+  [[menu.main]]
+    identifier = "kms"
+    name = "KMS"
+    url = "/posts/kms/"
+    weight = 1 
+  [[menu.main]]
+    identifier = "key"
+    name = "激活"
+    url = "/posts/keys/"
+    weight = 1
+
+
+
+    

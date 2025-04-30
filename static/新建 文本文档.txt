@@ -1,0 +1,5 @@
+{
+  "dest_dir": "D:\sources\repos\blog-repo\static\img",
+  "bucket": "static",
+  "cdn_domain": "static.luodaoyi.com"
+}
