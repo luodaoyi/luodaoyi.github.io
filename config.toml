@@ -62,7 +62,7 @@ uglyURLs = false
 [pagination]
     disableAliases = false
     # 每一分页的文章数（仅对「文章摘要」首页布局有效）
-    pagerSize = 10
+    pagerSize = 20
     path = 'page'
 
 # Markdown 渲染器
@@ -205,27 +205,29 @@ uglyURLs = false
         weight = 4
         pre = "internal"
         post = "tags"
-    [[menu.main]] 
-        name = "KMS"
-        url = "/posts/kms/"
-        weight = 1 
-        pre = "internal" 
-    [[menu.main]] 
-        name = "激活码"
-        url = "/posts/keys/"
-        weight = 1
-        pre = "internal" 
     [[menu.main]]
         pageref = "/about/"
         name = "关于"
         weight = 5
         pre = "internal"
         post = "user-circle"
-    [[menu.main]]
+    [[menu.main]] 
+        url = "/posts/kms/"
+        name = "KMS"
+        weight = 6 
+        pre = "internal" 
+        post= "clock"
+    [[menu.main]] 
+        url = "/posts/keys/"
+        name = "激活"
         weight = 6
-        identifier = "theme-switcher"
+        pre = "internal" 
+        post= "qrcode"
     [[menu.main]]
         weight = 7
+        identifier = "theme-switcher"
+    [[menu.main]]
+        weight = 8
         identifier = "lang-switcher"
     # [[menu.main]]
     #     weight = 8
@@ -1139,15 +1141,15 @@ uglyURLs = false
     # 文章的 Git 版本信息
 
     # 是否开启
-    enablePostGitInfo = false
+    enablePostGitInfo = true
 
     # 是否显示（全局设置）
-    displayPostGitInfo = false
+    displayPostGitInfo = true
     # 说明：文章的 Front Matter 中的 `gitinfo`
     #      的优先级高于此处
 
     # 仓库地址
-    repoURL = "https://github.com/luodaoyi/blog-repo"
+    repoURL = "https://github.com/luodaoyi/luodaoyi.github.io"
     # 编辑地址
     repoEditURL = ""
     repoEditURLSuffix = ""
@@ -1315,7 +1317,7 @@ uglyURLs = false
     # 自定义页脚（支持 Markdown）
     customFooter = ""
 
-    displayBusuanziSiteUVAndPV = false
+    displayBusuanziSiteUVAndPV = true
     busuanziSiteUVText = "本站访客数"
     busuanziSiteUVIcon = "user"
     busuanziSitePVText = "本站访问量"
@@ -1353,13 +1355,13 @@ uglyURLs = false
     # 是否开启竖直滚动
     enableOverflowY = true
     # 最大高度
-    maxHeight = 20
+    maxHeight = 10000
     # 单位：em
 
     # 是否开启复制
     enableCopy = true
     # 是否开启自动隐藏
-    enableCopyAutoHide = true
+    enableCopyAutoHide = false
 
 
     ######################################

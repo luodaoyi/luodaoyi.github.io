@@ -478,6 +478,10 @@ uglyURLs = false
     #      有一个比手动指定更高的优先级——
     #      Front Matter 中的 `description`。
 
+    # 自定页脚（支持 Template 与 Markdown 语法）
+    feedFooter = """> 阅读原文：<{{ .Permalink }}>  
+> 博客公告：博客现已开通邮件订阅，欢迎[通过 Substack 订阅](https://username.substack.com)支持我的创作！"""
+
 
     ######################################
     # 深色模式
@@ -508,12 +512,7 @@ uglyURLs = false
     # 网页应用
 
     # 说明：前往 https://realfavicongenerator.net/
-    #      生成相关图标和文件，下载后解压，仅保留
-    #      android-chrome-512x512.png、
-    #      apple-touch-icon.png、
-    #      mstile-150x150.png、
-    #      safari-pinned-tab.svg、favicon.ico、
-    #      site.webmanifest 这些文件，删除其余。
+    #      生成相关图标和文件，下载后解压。
     #      然后将这些文件移动到 ~/blog/static/icons/
     #      目录下，再将 favicon.ico、site.webmanifest
     #      移动到 ~/blog/static/ 目录下，
@@ -521,10 +520,16 @@ uglyURLs = false
     #      manifest.json，并检查和修改相关内容
     #      （图标的路径）。
 
+    # 注意：要检查你的图标
+    #      请前往 https://realfavicongenerator.net/favicon-checker。
+    #      如果检测到任何问题，检查生成的文件和
+    #      ~/blog/themes/meme/static/ 目录下
+    #      相关文件的文件名差异。如果有差异，
+    #      这意味着某些文件可能已经过时。
+    #      如有需要，请提 Issue。
+
     themeColor = "#fff"
     themeColorDark = "#16171d"
-    safariMaskColor = "#2a6df4"
-    msApplicationTileColor = "#fff"
 
 
     ######################################
@@ -907,7 +912,7 @@ uglyURLs = false
     enableCaption = true
 
     # 说明文字的前缀
-    captionPrefix = "◎ "
+    captionPrefix = "※ "
 
 
     ######################################
@@ -988,9 +993,9 @@ uglyURLs = false
     # 菜单栏
     fontFamilyMenu = ""
     # 文章标题、文章副标题、列表标题、列表的年份和月份标题、相关文章标题、文章上下篇标题、表格的表头、定义列表中的术语
-    fontFamilyTitle = "'Noto Serif SC', 'EB Garamond', serif"
+    fontFamilyTitle = "'Noto Serif SC', serif"
     # 分节标题、目录标题
-    fontFamilyHeadings = "'Noto Serif SC', 'EB Garamond', serif"
+    fontFamilyHeadings = "'Noto Serif SC', serif"
     # 代码、上标、文章元信息、文章更新徽章、文章的 Git 版本信息、极简页脚、不蒜子站点浏览计数
     fontFamilyCode = "'Source Code Pro', 'Noto Serif SC', monospace"
     # 引用
@@ -1002,10 +1007,10 @@ uglyURLs = false
     # 页脚
     fontFamilyFooter = ""
     # 主体
-    fontFamilyBody = "'EB Garamond', 'Noto Serif SC', serif"
+    fontFamilyBody = "'Noto Serif SC', serif"
 
     # 网络字体链接
-    fontsLink = "https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400;1,700&family=Noto+Serif+SC:wght@400;500;700&family=Source+Code+Pro:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+    fontsLink = "https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700&family=Source+Code+Pro:ital,wght@0,400;0,700;1,400;1,700&display=swap"
     # 说明：要想读者一定体验到你设置的字体，最好
     #      采用网络字体。MemE 主题目前仅支持
     #      Google Fonts 的链接，请前往
@@ -1015,7 +1020,7 @@ uglyURLs = false
     ######################################
     ## 字号（单位：px）
 
-    fontSize = 16
+    fontSize = 18
 
     ######################################
     ## 制表符的宽度
