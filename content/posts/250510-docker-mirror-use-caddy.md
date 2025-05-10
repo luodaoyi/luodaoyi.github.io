@@ -7,6 +7,7 @@ tags = [ "linux", "docker", "caddy" ]
 slug = "用Caddy搭建Docker加速服务"
 +++
 
+> 用Caddy搭建Docker加速服务, 不用跑docker什么的，直接用就可以了
 
 ```shell
 
