@@ -1,10 +1,10 @@
-+++
-title = 'Debian和Centos自动更新安全补丁，防止被黑'
-date = 2024-12-09T11:10:16+08:00
-draft = false
-categories=["linux"]
-tags= [ "dsm","debian", "ubuntu", "centos" ]
-+++
+---
+title: 'Debian和Centos自动更新安全补丁，防止被黑'
+date: 2024-12-09T11:10:16+08:00
+draft: false
+categories: ["linux"]
+tags: [ "dsm","debian", "ubuntu", "centos" ]
+---
 
 
 ## Debian 12 启用自动更新安全补丁

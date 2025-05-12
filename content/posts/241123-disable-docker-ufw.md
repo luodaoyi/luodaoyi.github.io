@@ -1,10 +1,10 @@
-+++
-title = '禁用docker的ufw,禁止docker无视ufw规则'
-date = 2024-11-23T08:33:14+08:00 
-draft = false
-categories=["linux"]
-tags= [ "dsm","debian", "ubuntu" ]
-+++
+---
+title: '禁用docker的ufw,禁止docker无视ufw规则'
+date: 2024-11-23T08:33:14+08:00 
+draft: false
+categories: ["linux"]
+tags: [ "dsm","debian", "ubuntu" ]
+---
 
 
 默认情况下，创建容器如果绑定了端口，则 docker 会自动修改 iptables 打开这个端口。然而 UFW 并不会显示这个规则，这就导致了不管使用 UFW 做什么限制，docker 绑定的这个端口都是开放的。

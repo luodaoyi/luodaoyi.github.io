@@ -1,8 +1,8 @@
-+++
-title = 'NaiveProxy 简易配置'
-date = 2023-12-05 17:15:30
-draft = false
-+++
+---
+title: 'NaiveProxy 简易配置'
+date: 2023-12-05 17:15:30
+draft: false
+---
 
 
 > 20250324 更新 

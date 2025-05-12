@@ -1,11 +1,11 @@
-+++
-title = '自建Docker镜像加速服务 mirrors'
-date = 2025-05-10T12:46:35+08:00
-draft = false
-categories = [ "linux","工具" ]
-tags = [ "linux", "docker", "caddy" ]
-slug = "自建Docker镜像加速服务"
-+++
+---
+title: '自建Docker镜像加速服务 mirrors'
+date: 2025-05-10T12:46:35+08:00
+draft: false
+categories: [ "linux","工具" ]
+tags: [ "linux", "docker", "caddy" ]
+slug: "自建Docker镜像加速服务"
+---
 
 > 使用docker compose部署，就俩文件配置好就可以用了
 

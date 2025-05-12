@@ -1,10 +1,10 @@
-+++
-title = 'Caddy设置仅允许cloudfalre的ip访问，防止被穿过waf'
-date = 2024-10-15T13:42:09+08:00
-draft = false
-categories=["linux"]
-tags= [ "dsm","群晖" ]
-+++
+---
+title: 'Caddy设置仅允许cloudfalre的ip访问，防止被穿过waf'
+date: 2024-10-15T13:42:09+08:00
+draft: false
+categories: ["linux"]
+tags: [ "dsm","群晖" ]
+---
 
 
 

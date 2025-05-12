@@ -1,11 +1,11 @@
-+++
-title = '用Caddy搭建Docker加速服务'
-date = 2025-05-10T00:06:24+08:00
-draft = false
-categories = [ "linux","工具" ]
-tags = [ "linux", "docker", "caddy" ]
-slug = "用Caddy搭建Docker加速服务"
-+++
+---
+title: '用Caddy搭建Docker加速服务'
+date: 2025-05-10T00:06:24+08:00
+draft: false
+categories: [ "linux","工具" ]
+tags: [ "linux", "docker", "caddy" ]
+slug: "用Caddy搭建Docker加速服务"
+---
 
 > 用Caddy搭建Docker加速服务, 不用跑docker什么的，直接用就可以了
 
