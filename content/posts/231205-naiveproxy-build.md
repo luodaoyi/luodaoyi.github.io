@@ -14,7 +14,7 @@ draft: false
 
 ```bash
 # 一键安装"
-wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --install
+wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo bash naiveproxy-deploy.sh --install
 ```
 ## 安装golang
 

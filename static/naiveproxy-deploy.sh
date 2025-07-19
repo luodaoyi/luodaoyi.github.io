@@ -42,7 +42,7 @@ show_usage() {
     echo "=========================================="
     echo "  NaiveProxy 一键部署脚本"
     echo "  作者: luodaoyi"
-    echo "  版本: v1.3"
+    echo "  版本: v1.4"
     echo "  时间: $(date '+%Y-%m-%d %H:%M:%S')"
     echo "=========================================="
     echo
@@ -57,23 +57,27 @@ show_usage() {
     echo "   $0 --uninstall   完全卸载NaiveProxy及相关组件"
     echo
     echo "⚡ 推荐使用方式："
-    echo "   # 下载脚本并安装"
+    echo "   # 一键安装（推荐）"
+    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo bash naiveproxy-deploy.sh --install"
+    echo
+    echo "   # 使用curl"
+    echo "   curl -O http://luodaoyi.com/naiveproxy-deploy.sh && sudo bash naiveproxy-deploy.sh --install"
+    echo
+    echo "💡 本地使用方式："
+    echo "   # 下载后使用"
     echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh"
     echo "   chmod +x naiveproxy-deploy.sh"
     echo "   sudo ./naiveproxy-deploy.sh --install"
     echo
+    echo "   # 或者直接用bash执行"
+    echo "   sudo bash naiveproxy-deploy.sh --install"
+    echo
+    echo "🔄 管理操作："
     echo "   # 升级"
-    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --upgrade"
+    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo bash naiveproxy-deploy.sh --upgrade"
     echo
     echo "   # 卸载"
-    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --uninstall"
-    echo
-    echo "💡 一键执行方式："
-    echo "   # 一键安装（推荐）"
-    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --install"
-    echo
-    echo "   # 使用curl（推荐）"
-    echo "   curl -O http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --install"
+    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo bash naiveproxy-deploy.sh --uninstall"
     echo
     echo "📦 安装内容："
     echo "   - Golang最新版本环境"
@@ -104,10 +108,10 @@ check_root() {
         log_error "此脚本需要root权限运行"
         echo
         log_info "请使用以下命令："
-        echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --install"
+        echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo bash naiveproxy-deploy.sh --install"
         echo
         echo "   或者："
-        echo "   sudo $0 --install"
+        echo "   sudo bash $0 --install"
         echo
         exit 1
     fi
@@ -464,10 +468,10 @@ show_completion() {
     echo
     echo "🔄 脚本管理命令:"
     echo "   # 升级"
-    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --upgrade"
+    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo bash naiveproxy-deploy.sh --upgrade"
     echo
     echo "   # 卸载"  
-    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --uninstall"
+    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo bash naiveproxy-deploy.sh --uninstall"
     echo
     echo "=========================================="
 }
@@ -502,7 +506,7 @@ upgrade_naiveproxy() {
     if [[ ! -f $CADDY_PATH ]]; then
         log_error "未检测到已安装的NaiveProxy"
         log_info "请先使用以下命令进行安装："
-        echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --install"
+        echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo bash naiveproxy-deploy.sh --install"
         exit 1
     fi
     
@@ -632,7 +636,7 @@ main() {
             log_warning "请指定操作参数！"
             echo
             log_info "推荐使用方式："
-            echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --install"
+            echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo bash naiveproxy-deploy.sh --install"
             echo
             exit 1
             ;;
