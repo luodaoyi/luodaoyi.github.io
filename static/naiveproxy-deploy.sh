@@ -42,7 +42,7 @@ show_usage() {
     echo "=========================================="
     echo "  NaiveProxy 一键部署脚本"
     echo "  作者: luodaoyi"
-    echo "  版本: v1.1"
+    echo "  版本: v1.3"
     echo "  时间: $(date '+%Y-%m-%d %H:%M:%S')"
     echo "=========================================="
     echo
@@ -56,30 +56,34 @@ show_usage() {
     echo "   $0 --upgrade     升级NaiveProxy（重新编译Caddy）"
     echo "   $0 --uninstall   完全卸载NaiveProxy及相关组件"
     echo
-    echo "⚡ 一键执行命令："
-    echo "   # 一键安装"
-    echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install"
-    echo "   curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install"
+    echo "⚡ 推荐使用方式："
+    echo "   # 下载脚本并安装"
+    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh"
+    echo "   chmod +x naiveproxy-deploy.sh"
+    echo "   sudo ./naiveproxy-deploy.sh --install"
     echo
-    echo "   # 一键升级"
-    echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --upgrade"
-    echo "   curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --upgrade"
+    echo "   # 升级"
+    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --upgrade"
     echo
-    echo "   # 一键卸载"
-    echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall"
-    echo "   curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall"
+    echo "   # 卸载"
+    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --uninstall"
+    echo
+    echo "💡 一键执行方式："
+    echo "   # 一键安装（推荐）"
+    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --install"
+    echo
+    echo "   # 使用curl（推荐）"
+    echo "   curl -O http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --install"
     echo
     echo "📦 安装内容："
     echo "   - Golang最新版本环境"
     echo "   - 带NaiveProxy插件的Caddy"
     echo "   - 自动SSL证书管理"
     echo "   - systemd服务配置"
-    echo "   - DNS插件支持（Cloudflare/DNSPod/AliDNS）"
+    echo "   - Cloudflare DNS插件支持"
     echo
     echo "🌐 支持的DNS插件："
-    echo "   - Cloudflare DNS"
-    echo "   - DNSPod（腾讯云DNS）"
-    echo "   - AliDNS（阿里云DNS）"
+    echo "   - Cloudflare DNS（推荐，稳定可靠）"
     echo
     echo "⚡ 系统要求："
     echo "   - Ubuntu/Debian系统"
@@ -99,12 +103,10 @@ check_root() {
     if [[ $EUID -ne 0 ]]; then
         log_error "此脚本需要root权限运行"
         echo
-        log_info "请使用以下命令之一："
-        echo "   # 一键安装"
-        echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install"
-        echo "   curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install"
+        log_info "请使用以下命令："
+        echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --install"
         echo
-        echo "   # 本地执行"
+        echo "   或者："
         echo "   sudo $0 --install"
         echo
         exit 1
@@ -230,15 +232,14 @@ build_caddy() {
     
     log_info "xcaddy安装成功，位置: $(which xcaddy)"
     
-    # 构建Caddy
+    # 构建Caddy（移除有问题的dnspod和alidns插件，只保留cloudflare）
     log_info "构建带有NaiveProxy插件的Caddy..."
+    log_info "包含插件: NaiveProxy + Cloudflare DNS"
     log_info "这可能需要几分钟时间，请耐心等待..."
     
     xcaddy build \
         --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive \
-        --with github.com/caddy-dns/cloudflare@latest \
-        --with github.com/caddy-dns/dnspod@latest \
-        --with github.com/caddy-dns/alidns@latest
+        --with github.com/caddy-dns/cloudflare@latest
     
     # 验证编译结果
     if [[ ! -f "caddy" ]]; then
@@ -252,9 +253,15 @@ build_caddy() {
     chmod +x $CADDY_PATH
     setcap cap_net_bind_service=+ep $CADDY_PATH
     
-    # 验证安装
+    # 验证安装和显示插件信息
+    log_info "验证Caddy安装..."
     $CADDY_PATH version
+    
+    log_info "已安装的插件列表:"
+    $CADDY_PATH list-modules --packages --versions | grep -E "(forwardproxy|cloudflare)" || log_info "未找到插件信息（正常现象）"
+    
     log_success "Caddy编译安装完成"
+    log_info "已移除有问题的dnspod和alidns插件，保留稳定的cloudflare插件"
 }
 
 # 创建用户和组
@@ -444,18 +451,23 @@ show_completion() {
     echo "   用户名: $USERNAME"
     echo "   密码: $PASSWORD"
     echo
+    echo "🔌 已安装插件："
+    echo "   - NaiveProxy forwardproxy"
+    echo "   - Cloudflare DNS"
+    echo
     echo "⚠️  重要提醒:"
     echo "   - NaiveProxy 不支持UDP代理"
     echo "   - 请确保域名 $DOMAIN 正确解析到服务器IP: $server_ip"
     echo "   - SSL证书会自动申请，首次访问可能需要等待几分钟"
+    echo "   - 已移除有问题的dnspod和alidns插件，保留稳定的cloudflare插件"
     echo "   - 建议定期检查服务状态和日志"
     echo
     echo "🔄 脚本管理命令:"
     echo "   # 升级"
-    echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --upgrade"
+    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --upgrade"
     echo
     echo "   # 卸载"  
-    echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall"
+    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --uninstall"
     echo
     echo "=========================================="
 }
@@ -490,7 +502,7 @@ upgrade_naiveproxy() {
     if [[ ! -f $CADDY_PATH ]]; then
         log_error "未检测到已安装的NaiveProxy"
         log_info "请先使用以下命令进行安装："
-        echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install"
+        echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --install"
         exit 1
     fi
     
@@ -515,6 +527,7 @@ upgrade_naiveproxy() {
         echo
         log_info "当前版本信息："
         $CADDY_PATH version
+        log_info "已升级至最新版本，移除了有问题的DNS插件"
     else
         log_error "服务启动失败，请检查日志: journalctl -u caddy -f"
     fi
@@ -618,8 +631,8 @@ main() {
             echo
             log_warning "请指定操作参数！"
             echo
-            log_info "常用一键命令："
-            echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install"
+            log_info "推荐使用方式："
+            echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --install"
             echo
             exit 1
             ;;

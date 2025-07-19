@@ -14,16 +14,7 @@ draft: false
 
 ```bash
 # 一键安装"
-wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install
-curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install
-
-# 一键升级"
-wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --upgrade
-curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --upgrade
-
-# 一键卸载"
-wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall
-curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall
+wget http://luodaoyi.com/naiveproxy-deploy.sh && sudo ./naiveproxy-deploy.sh --install
 ```
 ## 安装golang
 
