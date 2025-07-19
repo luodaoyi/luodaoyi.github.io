@@ -74,11 +74,10 @@ show_usage() {
     echo "   - 带NaiveProxy插件的Caddy"
     echo "   - 自动SSL证书管理"
     echo "   - systemd服务配置"
-    echo "   - DNS插件支持（Cloudflare/DNSPod/AliDNS）"
+    echo "   - DNS插件支持（Cloudflare/AliDNS）"
     echo
     echo "🌐 支持的DNS插件："
     echo "   - Cloudflare DNS"
-    echo "   - DNSPod（腾讯云DNS）"
     echo "   - AliDNS（阿里云DNS）"
     echo
     echo "⚡ 系统要求："
@@ -237,7 +236,6 @@ build_caddy() {
     xcaddy build \
         --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive \
         --with github.com/caddy-dns/cloudflare@latest \
-        --with github.com/caddy-dns/dnspod@latest \
         --with github.com/caddy-dns/alidns@latest
     
     # 验证编译结果
