@@ -4,11 +4,25 @@ date: 2023-12-05 17:15:30
 draft: false
 ---
 
-
+> 20250719 更新增加一键安装脚本，支持一键安装和卸载
 > 20250324 更新 
 > naiveproxy不可以代理udp
 
+## (更新)一键安装/卸载/升级脚本
 
+```bash
+# 一键安装"
+wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install
+curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install
+
+# 一键升级"
+wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --upgrade
+curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --upgrade
+
+# 一键卸载"
+wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall
+curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall
+```
 ## 安装golang
 
 ```shell
