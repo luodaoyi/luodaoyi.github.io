@@ -42,7 +42,7 @@ show_usage() {
     echo "=========================================="
     echo "  NaiveProxy 一键部署脚本"
     echo "  作者: luodaoyi"
-    echo "  版本: v1.0"
+    echo "  版本: v1.1"
     echo "  时间: $(date '+%Y-%m-%d %H:%M:%S')"
     echo "=========================================="
     echo
@@ -68,14 +68,6 @@ show_usage() {
     echo "   # 一键卸载"
     echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall"
     echo "   curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall"
-    echo
-    echo "💡 本地下载使用："
-    echo "   # 下载脚本"
-    echo "   wget http://luodaoyi.com/naiveproxy-deploy.sh"
-    echo "   chmod +x naiveproxy-deploy.sh"
-    echo
-    echo "   # 安装"
-    echo "   sudo ./naiveproxy-deploy.sh --install"
     echo
     echo "📦 安装内容："
     echo "   - Golang最新版本环境"
@@ -169,40 +161,50 @@ install_golang() {
     log_info "解压安装Go..."
     tar -zxf "$go_file" -C /usr/local/
     
-    # 配置环境变量
-    log_info "配置Go环境变量..."
+    # 配置全局环境变量（所有Go相关配置都统一在这里）
+    log_info "配置Go全局环境变量到 /etc/profile.d/go.sh..."
     cat > $GO_PROFILE_PATH << 'EOF'
+# Go语言环境配置
 export GOROOT=/usr/local/go
-export PATH=$GOROOT/bin:$PATH
+export GOPATH=$HOME/.gopath
+export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
+export GO111MODULE=on
+# export GOPROXY=https://goproxy.cn
 EOF
 
+    # 应用环境变量到当前会话
     source $GO_PROFILE_PATH
     
-    # 为所有用户配置GOPATH
-    if [[ -n "$SUDO_USER" ]]; then
+    # 为当前执行环境创建GOPATH目录（因为$HOME在不同用户下不同）
+    if [[ -n "$SUDO_USER" && "$SUDO_USER" != "root" ]]; then
+        # 为sudo用户创建GOPATH目录
         local user_home="/home/$SUDO_USER"
-        sudo -u "$SUDO_USER" bash -c "
-            cat >> $user_home/.bashrc << 'EOF'
-export GOPATH=\$HOME/.gopath
-export PATH=\$GOPATH/bin:\$PATH
-export GO111MODULE=on
-EOF
-            mkdir -p $user_home/.gopath
-        "
+        sudo -u "$SUDO_USER" mkdir -p "$user_home/.gopath"
+        log_info "已为用户 $SUDO_USER 创建GOPATH目录: $user_home/.gopath"
     fi
     
+    # 为root用户也创建GOPATH目录
+    mkdir -p "/root/.gopath"
+    log_info "已为root用户创建GOPATH目录: /root/.gopath"
+    
     # 验证安装
-    /usr/local/go/bin/go version
-    log_success "Golang安装完成"
+    $GOROOT/bin/go version
+    log_success "Golang安装完成，环境变量已配置到 /etc/profile.d/go.sh"
+    log_info "所有用户登录后都可以使用Go环境"
 }
 
 # 编译Caddy
 build_caddy() {
     log_info "开始编译Caddy..."
     
-    # 设置Go环境
-    export GOROOT=/usr/local/go
-    export PATH=$GOROOT/bin:$PATH
+    # 重新加载Go环境变量（从统一配置文件）
+    source $GO_PROFILE_PATH
+    
+    # 显示当前环境信息
+    log_info "当前Go环境:"
+    log_info "  GOROOT: $GOROOT"
+    log_info "  GOPATH: $GOPATH" 
+    log_info "  GO111MODULE: $GO111MODULE"
     
     # 创建工作目录
     local work_dir="/tmp/caddy-build"
@@ -210,30 +212,44 @@ build_caddy() {
     mkdir -p "$work_dir"
     cd "$work_dir"
     
-    # 安装xcaddy
-    log_info "安装xcaddy工具..."
-    $GOROOT/bin/go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
-    
-    # 设置GOPATH
-    export GOPATH="/root/.gopath"
+    # 确保GOPATH目录存在
     mkdir -p "$GOPATH"
-    export PATH="$GOPATH/bin:$PATH"
+    
+    # 安装xcaddy（现在使用统一的环境变量）
+    log_info "安装xcaddy工具..."
+    go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+    
+    # 验证xcaddy安装
+    if ! command -v xcaddy &> /dev/null; then
+        log_error "xcaddy命令不可用，请检查PATH设置"
+        log_info "当前PATH: $PATH"
+        log_info "GOPATH/bin内容:"
+        ls -la "$GOPATH/bin/" || echo "目录不存在或为空"
+        exit 1
+    fi
+    
+    log_info "xcaddy安装成功，位置: $(which xcaddy)"
     
     # 构建Caddy
     log_info "构建带有NaiveProxy插件的Caddy..."
     log_info "这可能需要几分钟时间，请耐心等待..."
-    $GOPATH/bin/xcaddy build \
+    
+    xcaddy build \
         --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive \
         --with github.com/caddy-dns/cloudflare@latest \
         --with github.com/caddy-dns/dnspod@latest \
         --with github.com/caddy-dns/alidns@latest
     
+    # 验证编译结果
+    if [[ ! -f "caddy" ]]; then
+        log_error "Caddy编译失败，找不到编译后的文件"
+        exit 1
+    fi
+    
     # 安装Caddy
     log_info "安装Caddy到系统路径..."
     mv caddy $CADDY_PATH
     chmod +x $CADDY_PATH
-    
-    # 设置权限
     setcap cap_net_bind_service=+ep $CADDY_PATH
     
     # 验证安装
@@ -489,10 +505,6 @@ upgrade_naiveproxy() {
     # 重新编译Caddy
     build_caddy
     
-    # 恢复配置
-    log_info "恢复配置文件..."
-    # 这里我们不恢复备份，而是保持现有配置
-    
     # 重启服务
     log_info "重启Caddy服务..."
     systemctl start caddy
@@ -521,7 +533,7 @@ uninstall_naiveproxy() {
     log_warning "⚠️  警告：此操作将完全删除以下内容："
     echo "   - Caddy服务和配置文件"
     echo "   - Golang环境 ($GO_INSTALL_PATH)"
-    echo "   - 用户环境变量配置"
+    echo "   - 全局环境变量配置 ($GO_PROFILE_PATH)"
     echo "   - systemd服务配置"
     echo
     
@@ -556,26 +568,37 @@ uninstall_naiveproxy() {
     userdel -r caddy 2>/dev/null || true
     groupdel caddy 2>/dev/null || true
     
-    # 删除Go环境
+    # 删除Go环境（现在非常简单）
     log_info "删除Golang环境..."
     rm -rf $GO_INSTALL_PATH
-    rm -f $GO_PROFILE_PATH
+    rm -f $GO_PROFILE_PATH    # 删除统一的环境变量配置文件
     
-    # 清理用户环境变量（如果存在）
-    if [[ -n "$SUDO_USER" ]]; then
-        local user_home="/home/$SUDO_USER"
-        if [[ -f "$user_home/.bashrc" ]]; then
-            log_info "清理用户环境变量..."
-            sed -i '/export GOPATH=/d' "$user_home/.bashrc"
-            sed -i '/export PATH=.*GOPATH/d' "$user_home/.bashrc"
-            sed -i '/export GO111MODULE/d' "$user_home/.bashrc"
-        fi
-        rm -rf "$user_home/.gopath" 2>/dev/null || true
+    # 询问是否清理GOPATH目录
+    echo
+    log_info "Go环境变量配置已删除"
+    read -p "是否同时删除Go工作目录(.gopath)？这会影响所有用户的Go项目 (y/N): " clean_gopath
+    
+    if [[ $clean_gopath =~ ^[Yy]$ ]]; then
+        # 清理所有用户的GOPATH
+        rm -rf "/root/.gopath" 2>/dev/null || true
+        
+        # 清理普通用户的GOPATH（如果存在）
+        for user_dir in /home/*; do
+            if [[ -d "$user_dir/.gopath" ]]; then
+                rm -rf "$user_dir/.gopath"
+                log_info "已删除 $(basename $user_dir) 用户的Go工作目录"
+            fi
+        done
+        
+        log_info "所有Go工作目录已清理"
+    else
+        log_info "保留Go工作目录，用户可以手动清理"
     fi
     
     echo
     log_success "NaiveProxy卸载完成！"
     log_info "所有相关文件和配置已删除"
+    log_info "注意：需要重新登录才能完全清除Go环境变量"
 }
 
 # 主函数

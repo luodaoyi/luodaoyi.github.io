@@ -1,348 +1,155 @@
-#!/bin/bash
+---
+title: 'NaiveProxy 简易配置'
+date: 2023-12-05 17:15:30
+draft: false
+---
 
-# NaiveProxy 一键部署脚本
-# 作者: luodaoyi
-# 支持安装、升级、卸载功能
+> 20250719 更新增加一键安装脚本，支持一键安装和卸载
 
-set -e
+> 20250324 更新 
 
-# 颜色输出
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+> naiveproxy不可以代理udp
 
-log_info() {
-    echo -e "${BLUE}[信息]${NC} $1"
-}
+## (更新)一键安装/卸载/升级脚本
 
-log_success() {
-    echo -e "${GREEN}[成功]${NC} $1"
-}
+```bash
+# 一键安装"
+wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install
+curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install
 
-log_warning() {
-    echo -e "${YELLOW}[警告]${NC} $1"
-}
+# 一键升级"
+wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --upgrade
+curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --upgrade
 
-log_error() {
-    echo -e "${RED}[错误]${NC} $1"
-}
+# 一键卸载"
+wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall
+curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall
+```
+## 安装golang
 
-# 配置变量
-GO_INSTALL_PATH="/usr/local/go"
-CADDY_PATH="/usr/bin/caddy"
-CADDY_CONFIG_PATH="/etc/caddy"
-CADDY_SERVICE_PATH="/etc/systemd/system/caddy.service"
-GO_PROFILE_PATH="/etc/profile.d/go.sh"
+```shell
+sudo apt update
+sudo apt install wget -y
 
-# 显示使用说明
-show_usage() {
-    echo
-    echo "=========================================="
-    echo "  NaiveProxy 一键部署脚本"
-    echo "  作者: luodaoyi"
-    echo "  版本: v1.1"
-    echo "  时间: $(date '+%Y-%m-%d %H:%M:%S')"
-    echo "=========================================="
-    echo
-    echo "📋 功能说明："
-    echo "   NaiveProxy是基于Caddy forwardproxy的高性能代理工具"
-    echo "   支持HTTP/2协议，具有强抗检测能力"
-    echo "   ⚠️  注意：NaiveProxy不支持UDP代理"
-    echo
-    echo "🔧 使用方法："
-    echo "   $0 --install     安装NaiveProxy服务"
-    echo "   $0 --upgrade     升级NaiveProxy（重新编译Caddy）"
-    echo "   $0 --uninstall   完全卸载NaiveProxy及相关组件"
-    echo
-    echo "⚡ 一键执行命令："
-    echo "   # 一键安装"
-    echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install"
-    echo "   curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install"
-    echo
-    echo "   # 一键升级"
-    echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --upgrade"
-    echo "   curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --upgrade"
-    echo
-    echo "   # 一键卸载"
-    echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall"
-    echo "   curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall"
-    echo
-    echo "📦 安装内容："
-    echo "   - Golang最新版本环境"
-    echo "   - 带NaiveProxy插件的Caddy"
-    echo "   - 自动SSL证书管理"
-    echo "   - systemd服务配置"
-    echo "   - DNS插件支持（Cloudflare/AliDNS）"
-    echo
-    echo "🌐 支持的DNS插件："
-    echo "   - Cloudflare DNS"
-    echo "   - AliDNS（阿里云DNS）"
-    echo
-    echo "⚡ 系统要求："
-    echo "   - Ubuntu/Debian系统"
-    echo "   - 需要root权限"
-    echo "   - 支持AMD64/ARM64架构"
-    echo "   - 需要有效的域名和DNS解析"
-    echo
-    echo "🔗 相关链接："
-    echo "   - GitHub: https://github.com/klzgrad/naiveproxy"
-    echo "   - Caddy: https://caddyserver.com/"
-    echo
-    echo "=========================================="
-}
+# 获取最新版本
+export GO_VER=$(curl -s https://go.dev/dl/?mode=json | jq -r '.[0].version')
+echo $GO_VER
 
-# 检查root权限
-check_root() {
-    if [[ $EUID -ne 0 ]]; then
-        log_error "此脚本需要root权限运行"
-        echo
-        log_info "请使用以下命令之一："
-        echo "   # 一键安装"
-        echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install"
-        echo "   curl -sSL http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install"
-        echo
-        echo "   # 本地执行"
-        echo "   sudo $0 --install"
-        echo
-        exit 1
-    fi
-}
+## 清空目录
+rm -rf /usr/local/go && mkdir -p /usr/local/go
 
-# 检查系统架构
-detect_arch() {
-    local arch=$(uname -m)
-    case $arch in
-        x86_64)
-            echo "amd64"
-            ;;
-        aarch64|arm64)
-            echo "arm64"
-            ;;
-        *)
-            log_error "不支持的系统架构: $arch"
-            exit 1
-            ;;
-    esac
-}
+# amd机器
+wget https://go.dev/dl/${GO_VER}.linux-amd64.tar.gz 
+sudo tar -zxvf ${GO_VER}.linux-amd64.tar.gz -C /usr/local/
 
-# 安装依赖
-install_dependencies() {
-    log_info "更新软件包列表并安装依赖..."
-    apt update
-    apt install -y wget curl jq libnss3 debian-keyring debian-archive-keyring apt-transport-https python3
-    log_success "依赖软件包安装完成"
-}
+# 甲骨文之类的arm机器
+wget https://go.dev/dl/${GO_VER}.linux-arm64.tar.gz
+sudo tar -zxvf ${GO_VER}.linux-arm64.tar.gz -C /usr/local/
 
-# 安装Golang
-install_golang() {
-    log_info "开始安装Golang..."
-    
-    # 获取最新版本
-    local go_version
-    go_version=$(curl -s https://go.dev/dl/?mode=json | jq -r '.[0].version')
-    log_info "最新Go版本: $go_version"
-    
-    # 检测架构
-    local arch=$(detect_arch)
-    local go_file="${go_version}.linux-${arch}.tar.gz"
-    
-    # 清理旧版本
-    rm -rf $GO_INSTALL_PATH
-    mkdir -p $GO_INSTALL_PATH
-    
-    # 下载并安装
-    log_info "下载Go安装包: $go_file"
-    cd /tmp
-    wget -O "$go_file" "https://go.dev/dl/$go_file"
-    
-    log_info "解压安装Go..."
-    tar -zxf "$go_file" -C /usr/local/
-    
-    # 配置全局环境变量（所有Go相关配置都统一在这里）
-    log_info "配置Go全局环境变量到 /etc/profile.d/go.sh..."
-    cat > $GO_PROFILE_PATH << 'EOF'
-# Go语言环境配置
+# 配置path
+cat > /etc/profile.d/go.sh << \EOF
 export GOROOT=/usr/local/go
-export GOPATH=$HOME/.gopath
-export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
-export GO111MODULE=on
-# export GOPROXY=https://goproxy.cn
+export PATH=$GOROOT/bin:$PATH
 EOF
 
-    # 应用环境变量到当前会话
-    source $GO_PROFILE_PATH
-    
-    # 为当前执行环境创建GOPATH目录（因为$HOME在不同用户下不同）
-    if [[ -n "$SUDO_USER" && "$SUDO_USER" != "root" ]]; then
-        # 为sudo用户创建GOPATH目录
-        local user_home="/home/$SUDO_USER"
-        sudo -u "$SUDO_USER" mkdir -p "$user_home/.gopath"
-        log_info "已为用户 $SUDO_USER 创建GOPATH目录: $user_home/.gopath"
-    fi
-    
-    # 为root用户也创建GOPATH目录
-    mkdir -p "/root/.gopath"
-    log_info "已为root用户创建GOPATH目录: /root/.gopath"
-    
-    # 验证安装
-    $GOROOT/bin/go version
-    log_success "Golang安装完成，环境变量已配置到 /etc/profile.d/go.sh"
-    log_info "所有用户登录后都可以使用Go环境"
-}
+source /etc/profile.d/go.sh
 
-# 编译Caddy
-build_caddy() {
-    log_info "开始编译Caddy..."
-    
-    # 重新加载Go环境变量（从统一配置文件）
-    source $GO_PROFILE_PATH
-    
-    # 显示当前环境信息
-    log_info "当前Go环境:"
-    log_info "  GOROOT: $GOROOT"
-    log_info "  GOPATH: $GOPATH" 
-    log_info "  GO111MODULE: $GO111MODULE"
-    
-    # 创建工作目录
-    local work_dir="/tmp/caddy-build"
-    rm -rf "$work_dir"
-    mkdir -p "$work_dir"
-    cd "$work_dir"
-    
-    # 确保GOPATH目录存在
-    mkdir -p "$GOPATH"
-    
-    # 安装xcaddy（现在使用统一的环境变量）
-    log_info "安装xcaddy工具..."
-    go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
-    
-    # 验证xcaddy安装
-    if ! command -v xcaddy &> /dev/null; then
-        log_error "xcaddy命令不可用，请检查PATH设置"
-        log_info "当前PATH: $PATH"
-        log_info "GOPATH/bin内容:"
-        ls -la "$GOPATH/bin/" || echo "目录不存在或为空"
-        exit 1
-    fi
-    
-    log_info "xcaddy安装成功，位置: $(which xcaddy)"
-    
-    # 构建Caddy
-    log_info "构建带有NaiveProxy插件的Caddy..."
-    log_info "这可能需要几分钟时间，请耐心等待..."
-    
-    xcaddy build \
-        --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive \
-        --with github.com/caddy-dns/cloudflare@latest \
-        --with github.com/caddy-dns/alidns@latest
-    
-    # 验证编译结果
-    if [[ ! -f "caddy" ]]; then
-        log_error "Caddy编译失败，找不到编译后的文件"
-        exit 1
-    fi
-    
-    # 安装Caddy
-    log_info "安装Caddy到系统路径..."
-    mv caddy $CADDY_PATH
-    chmod +x $CADDY_PATH
-    setcap cap_net_bind_service=+ep $CADDY_PATH
-    
-    # 验证安装
-    $CADDY_PATH version
-    log_success "Caddy编译安装完成"
-}
+# 加入环境变量
+cat >> ~/.bashrc << \EOF
+export GOPATH=$HOME/.gopath
+export PATH=$GOPATH/bin:$PATH
+export GO111MODULE=on
+#export GOPROXY=https://goproxy.cn
+EOF
 
-# 创建用户和组
-create_caddy_user() {
-    log_info "创建Caddy用户和组..."
-    
-    if ! getent group caddy >/dev/null 2>&1; then
-        groupadd --system caddy
-    fi
-    
-    if ! getent passwd caddy >/dev/null 2>&1; then
-        useradd --system \
-            --gid caddy \
-            --create-home \
-            --home-dir /var/lib/caddy \
-            --shell /usr/sbin/nologin \
-            --comment "Caddy web server" \
-            caddy
-    fi
-    
-    log_success "Caddy用户创建完成"
-}
+source ~/.bashrc && mkdir -p $GOPATH && echo $GOPATH
 
-# 配置Caddy服务
-configure_caddy() {
-    log_info "配置Caddy服务..."
-    
-    # 创建配置目录
-    mkdir -p $CADDY_CONFIG_PATH
-    
-    # 获取用户输入
-    echo
-    log_info "请按提示输入配置信息："
-    read -p "请输入您的域名 (例: example.com): " DOMAIN
-    while [[ -z "$DOMAIN" ]]; do
-        log_warning "域名不能为空，请重新输入"
-        read -p "请输入您的域名 (例: example.com): " DOMAIN
-    done
-    
-    read -p "请输入管理员邮箱 (用于SSL证书): " EMAIL
-    while [[ -z "$EMAIL" ]]; do
-        log_warning "邮箱不能为空，请重新输入"
-        read -p "请输入管理员邮箱 (用于SSL证书): " EMAIL
-    done
-    
-    read -p "请输入代理用户名 (默认: naiveuser): " USERNAME
-    USERNAME=${USERNAME:-naiveuser}
-    
-    while true; do
-        read -s -p "请输入代理密码: " PASSWORD
-        echo
-        if [[ -z "$PASSWORD" ]]; then
-            log_warning "密码不能为空，请重新输入"
-        else
-            break
-        fi
-    done
-    
-    read -p "请输入反向代理目标 (默认: www.bing.com): " REVERSE_TARGET
-    REVERSE_TARGET=${REVERSE_TARGET:-www.bing.com}
-    
-    # 生成配置文件
-    cat > $CADDY_CONFIG_PATH/Caddyfile << EOF
+# 看看正常不
+go version
+go env
+
+```
+
+## 编译安装
+
+```shell
+# 开始编译
+sudo apt-get install libnss3 debian-keyring debian-archive-keyring apt-transport-https
+
+mkdir ~/src &&  cd ~/src/
+
+# 用xcaddy构建
+go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+
+# 开始构建
+xcaddy build \
+    --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive \
+    --with github.com/caddy-dns/cloudflare@latest \
+    --with github.com/caddy-dns/dnspod@latest \
+    --with github.com/caddy-dns/alidns@latest 
+
+
+sudo mv caddy /usr/bin/
+caddy version
+sudo setcap cap_net_bind_service=+ep /usr/bin/caddy  # 设置bind权限，可443
+
+# 检查正常不
+caddy version 
+
+# 查看caddy已经安装的第三方模块
+caddy list-modules --packages
+
+```
+
+## 配置服务
+
+```shell
+# 开始配置
+
+mkdir -p /etc/caddy/ && touch /etc/caddy/Caddyfile
+
+cat > /etc/caddy/Caddyfile << \EOF
 {
     admin off
     order forward_proxy before reverse_proxy
 }
 
-:443, $DOMAIN {
-    tls $EMAIL
+:443, luodaoyi.com {
+    tls asura@asura.com 
     request_body {
-        max_size 1GB
+            max_size 1GB
     }
     forward_proxy {
-        basic_auth $USERNAME $PASSWORD
-        hide_ip
-        hide_via
-        probe_resistance
+            basic_auth asura asura123
+            hide_ip
+            hide_via
+            probe_resistance
     }
-    reverse_proxy $REVERSE_TARGET
+    # 这里的端口是你反代的地址 随便你填 没的话填域名也可以
+    # reverse_proxy www.bing.com
+    reverse_proxy 127.0.0.1:33000
 }
+
 EOF
 
-    # 创建systemd服务文件
-    cat > $CADDY_SERVICE_PATH << 'EOF'
+# 封装成服务 开机启动
+groupadd --system caddy
+
+useradd --system \
+    --gid caddy \
+    --create-home \
+    --home-dir /var/lib/caddy \
+    --shell /usr/sbin/nologin \
+    --comment "Caddy web server" \
+    caddy
+
+cat > /etc/systemd/system/caddy.service << \EOF
 [Unit]
 Description=Caddy
 Documentation=https://caddyserver.com/docs/
 After=network.target network-online.target
 Requires=network-online.target
+
 
 [Service]
 User=caddy
@@ -356,273 +163,33 @@ PrivateTmp=true
 ProtectSystem=full
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 
+
 [Install]
 WantedBy=multi-user.target
 EOF
 
-    # 启动服务
-    log_info "启动Caddy服务..."
-    systemctl daemon-reload
-    systemctl enable caddy
-    systemctl start caddy
-    
-    # 检查服务状态
-    if systemctl is-active --quiet caddy; then
-        log_success "Caddy服务启动成功"
-    else
-        log_warning "Caddy服务启动可能有问题，请检查日志: journalctl -u caddy -f"
-    fi
-}
 
-# 检查JARM指纹
-check_jarm() {
-    log_info "检查JARM指纹..."
-    
-    if [[ -z "$DOMAIN" ]]; then
-        log_warning "未设置域名，跳过JARM检查"
-        return
-    fi
-    
-    # 等待服务完全启动
-    log_info "等待Caddy服务完全启动..."
-    sleep 10
-    
-    # 下载JARM工具
-    cd /tmp
-    if ! wget -q https://raw.githubusercontent.com/salesforce/jarm/master/jarm.py; then
-        log_warning "无法下载JARM工具，跳过指纹检查"
-        return
-    fi
-    
-    # 检查指纹
-    log_info "正在检查JARM指纹，请稍候..."
-    local jarm_result
-    jarm_result=$(timeout 30 python3 jarm.py "$DOMAIN" 2>/dev/null | tail -1 || echo "检查超时或失败")
-    
-    echo
-    log_info "JARM指纹检查结果: $jarm_result"
-    
-    if [[ "$jarm_result" != "检查超时或失败" ]]; then
-        log_info "指纹检查建议："
-        log_info "1. 访问 https://fofa.info"
-        log_info "2. 搜索框输入: jarm=\"$jarm_result\""
-        log_info "3. 如果结果有数万个以上，说明指纹正常"
-        log_info "4. 如果只有几十个，建议重新部署或更换配置"
-    fi
-    echo
-}
+# 测试正常不正常
+sudo systemctl daemon-reload && sudo systemctl enable caddy  
+sudo systemctl start caddy  && sudo systemctl status caddy
+ 
+```
 
-# 显示完成信息
-show_completion() {
-    local server_ip
-    server_ip=$(curl -s --max-time 10 ifconfig.me 2>/dev/null || curl -s --max-time 10 icanhazip.com 2>/dev/null || hostname -I | awk '{print $1}' || echo "无法获取")
-    
-    echo
-    echo "=========================================="
-    log_success "NaiveProxy 安装部署完成！"
-    echo "=========================================="
-    echo
-    echo "📋 服务信息:"
-    echo "   域名: $DOMAIN"
-    echo "   服务器IP: $server_ip"
-    echo "   代理用户名: $USERNAME"
-    echo "   代理密码: $PASSWORD"
-    echo "   反向代理目标: $REVERSE_TARGET"
-    echo
-    echo "🔧 管理命令:"
-    echo "   查看状态: systemctl status caddy"
-    echo "   重启服务: systemctl restart caddy"
-    echo "   查看日志: journalctl -u caddy -f"
-    echo "   重载配置: systemctl reload caddy"
-    echo "   测试配置: caddy validate --config /etc/caddy/Caddyfile"
-    echo
-    echo "📱 客户端配置:"
-    echo "   协议: HTTPS"
-    echo "   服务器: $DOMAIN:443"
-    echo "   用户名: $USERNAME"
-    echo "   密码: $PASSWORD"
-    echo
-    echo "⚠️  重要提醒:"
-    echo "   - NaiveProxy 不支持UDP代理"
-    echo "   - 请确保域名 $DOMAIN 正确解析到服务器IP: $server_ip"
-    echo "   - SSL证书会自动申请，首次访问可能需要等待几分钟"
-    echo "   - 建议定期检查服务状态和日志"
-    echo
-    echo "🔄 脚本管理命令:"
-    echo "   # 升级"
-    echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --upgrade"
-    echo
-    echo "   # 卸载"  
-    echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --uninstall"
-    echo
-    echo "=========================================="
-}
 
-# 安装NaiveProxy
-install_naiveproxy() {
-    echo
-    echo "=========================================="
-    log_info "开始安装NaiveProxy..."
-    echo "=========================================="
-    
-    check_root
-    install_dependencies
-    install_golang
-    build_caddy
-    create_caddy_user
-    configure_caddy
-    check_jarm
-    show_completion
-}
+## 检查指纹
 
-# 升级功能
-upgrade_naiveproxy() {
-    echo
-    echo "=========================================="
-    log_info "开始升级NaiveProxy..."
-    echo "=========================================="
-    
-    check_root
-    
-    # 检查是否已安装
-    if [[ ! -f $CADDY_PATH ]]; then
-        log_error "未检测到已安装的NaiveProxy"
-        log_info "请先使用以下命令进行安装："
-        echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install"
-        exit 1
-    fi
-    
-    # 停止服务
-    log_info "停止Caddy服务..."
-    systemctl stop caddy
-    
-    # 备份配置
-    log_info "备份当前配置..."
-    cp $CADDY_CONFIG_PATH/Caddyfile /tmp/Caddyfile.backup.$(date +%Y%m%d_%H%M%S)
-    
-    # 重新编译Caddy
-    build_caddy
-    
-    # 重启服务
-    log_info "重启Caddy服务..."
-    systemctl start caddy
-    
-    # 检查状态
-    if systemctl is-active --quiet caddy; then
-        log_success "NaiveProxy升级完成！"
-        echo
-        log_info "当前版本信息："
-        $CADDY_PATH version
-    else
-        log_error "服务启动失败，请检查日志: journalctl -u caddy -f"
-    fi
-}
+```shell
 
-# 卸载功能
-uninstall_naiveproxy() {
-    echo
-    echo "=========================================="
-    log_warning "开始卸载NaiveProxy..."
-    echo "=========================================="
-    
-    check_root
-    
-    echo
-    log_warning "⚠️  警告：此操作将完全删除以下内容："
-    echo "   - Caddy服务和配置文件"
-    echo "   - Golang环境 ($GO_INSTALL_PATH)"
-    echo "   - 全局环境变量配置 ($GO_PROFILE_PATH)"
-    echo "   - systemd服务配置"
-    echo
-    
-    read -p "确定要完全卸载NaiveProxy吗？请输入 'yes' 确认: " confirm
-    if [[ "$confirm" != "yes" ]]; then
-        log_info "取消卸载操作"
-        return
-    fi
-    
-    log_info "开始卸载过程..."
-    
-    # 停止并禁用服务
-    log_info "停止Caddy服务..."
-    systemctl stop caddy 2>/dev/null || true
-    systemctl disable caddy 2>/dev/null || true
-    
-    # 删除服务文件
-    log_info "删除systemd服务文件..."
-    rm -f $CADDY_SERVICE_PATH
-    systemctl daemon-reload
-    
-    # 删除Caddy可执行文件
-    log_info "删除Caddy可执行文件..."
-    rm -f $CADDY_PATH
-    
-    # 删除配置目录
-    log_info "删除配置目录..."
-    rm -rf $CADDY_CONFIG_PATH
-    
-    # 删除用户和组
-    log_info "删除Caddy用户和组..."
-    userdel -r caddy 2>/dev/null || true
-    groupdel caddy 2>/dev/null || true
-    
-    # 删除Go环境（现在非常简单）
-    log_info "删除Golang环境..."
-    rm -rf $GO_INSTALL_PATH
-    rm -f $GO_PROFILE_PATH    # 删除统一的环境变量配置文件
-    
-    # 询问是否清理GOPATH目录
-    echo
-    log_info "Go环境变量配置已删除"
-    read -p "是否同时删除Go工作目录(.gopath)？这会影响所有用户的Go项目 (y/N): " clean_gopath
-    
-    if [[ $clean_gopath =~ ^[Yy]$ ]]; then
-        # 清理所有用户的GOPATH
-        rm -rf "/root/.gopath" 2>/dev/null || true
-        
-        # 清理普通用户的GOPATH（如果存在）
-        for user_dir in /home/*; do
-            if [[ -d "$user_dir/.gopath" ]]; then
-                rm -rf "$user_dir/.gopath"
-                log_info "已删除 $(basename $user_dir) 用户的Go工作目录"
-            fi
-        done
-        
-        log_info "所有Go工作目录已清理"
-    else
-        log_info "保留Go工作目录，用户可以手动清理"
-    fi
-    
-    echo
-    log_success "NaiveProxy卸载完成！"
-    log_info "所有相关文件和配置已删除"
-    log_info "注意：需要重新登录才能完全清除Go环境变量"
-}
+ # 检查指纹
+# 下载jarm
+wget https://raw.githubusercontent.com/salesforce/jarm/master/jarm.py
 
-# 主函数
-main() {
-    case "${1:-}" in
-        --install)
-            install_naiveproxy
-            ;;
-        --upgrade)
-            upgrade_naiveproxy
-            ;;
-        --uninstall)
-            uninstall_naiveproxy
-            ;;
-        *)
-            show_usage
-            echo
-            log_warning "请指定操作参数！"
-            echo
-            log_info "常用一键命令："
-            echo "   wget -qO- http://luodaoyi.com/naiveproxy-deploy.sh | sudo bash -s -- --install"
-            echo
-            exit 1
-            ;;
-    esac
-}
+# 查看网站jarm指纹 
+python3 jarm.py 你的域名
 
-# 执行主函数
-main "$@"
+# 网络空间资产搜索引擎：
+# 打开网址 https://fofa.info  
+# 搜索框输入:  jarm="xxxxx"
+# 如果结果有几百万个 那就没问题了，要是几十个就有问题，说明有特征了，重新搞吧
+```
+
