@@ -68,6 +68,19 @@ cat /var/log/unattended-upgrades/unattended-upgrades.log
 通过上述步骤，即可在 Debian 12 上较为方便地开启并确认自动安装安全更新的功能。
 
 
+傻瓜全自动版本
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install unattended-upgrades -y
+sudo dpkg-reconfigure unattended-upgrades
+sudo systemctl status apt-daily.timer
+sudo systemctl status apt-daily-upgrade.timer
+sudo systemctl enable --now apt-daily.timer
+sudo systemctl enable --now apt-daily-upgrade.timer
+sudo unattended-upgrade --dry-run
+sudo apt autoremove
+
+```
 
 
 ## 再说一下centos7如何启用
