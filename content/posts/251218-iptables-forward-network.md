@@ -23,7 +23,6 @@ draft: false
 脚本已放在 Gist，建议以 Gist 为准（文章内也附了同版本源码，便于直接阅读）。
 
 - Gist 页面：https://gist.github.com/luodaoyi/1f6d406b6b797da078b0480608e61ae9
-- Raw（固定版本，推荐）：https://gist.githubusercontent.com/luodaoyi/1f6d406b6b797da078b0480608e61ae9/raw/9a568b9b0452c68502663b6c32c68f37a6d0a1e9/iptables-forward
 - 短链接（方便，但不建议在自动化里依赖）：https://dub.sh/Q24iKiU
 
 下载并执行（建议保存为 `pfwd-manage.sh`）：
