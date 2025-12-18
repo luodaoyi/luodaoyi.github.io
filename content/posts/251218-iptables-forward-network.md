@@ -1,7 +1,7 @@
 ---
 title: '利用iptables转发服务器流量'
 date: 2025-12-18T16:33:37+08:00
-draft: true
+draft: false
 ---
 
 这里提供一个“够用且可回滚”的最小 iptables 转发脚本：安装时交互式输入转发目标 IP、需要排除的不转发端口（可多个），并选择入口网卡；其余 TCP/UDP/ICMP 流量统一 DNAT 到后端。由 systemd 托管，重启不丢；一键卸载，出错可干净撤回。
@@ -31,6 +31,7 @@ CONFIG=/etc/port-forward.conf
 SERVICE=/etc/systemd/system/port-forward.service
 RUNTIME=/usr/local/sbin/pfwd-apply.sh
 
+log(){ echo "[*] $*"; }
 die(){ echo "ERROR: $*" >&2; exit 1; }
 need_cmd(){ command -v "$1" >/dev/null 2>&1 || die "缺少命令: $1"; }
 
@@ -44,6 +45,7 @@ detect_pm(){
 auto_install_deps(){
   local pm
   pm=$(detect_pm) || die "缺少依赖(ip/iptable)且无法识别包管理器(apt/dnf/yum)"
+  log "自动安装依赖：$pm"
   case "$pm" in
     apt)
       apt-get update
@@ -64,6 +66,7 @@ ensure_deps(){
   command -v ip >/dev/null 2>&1 || missing+=("ip")
   if [ "${#missing[@]}" -gt 0 ]; then
     if [ "${AUTO_INSTALL:-0}" = "1" ]; then
+      log "检测到缺少：${missing[*]}"
       auto_install_deps
     else
       echo "缺少命令：${missing[*]}"
@@ -151,10 +154,12 @@ CONFIG=/etc/port-forward.conf
 CHAIN_NAT=PFWD_NAT
 CHAIN_FWD=PFWD_FWD
 
+log(){ echo "[*] $*"; }
 die(){ echo "ERROR: $*" >&2; exit 1; }
 
 apply_rules(){
   local target="$1" in_iface="$2" exclude_ports="${3:-}" p
+  log "应用转发规则：IN_IFACE=$in_iface TARGET_IP=$target EXCLUDE_PORTS=${exclude_ports:-无}"
   iptables -t nat -N "$CHAIN_NAT" 2>/dev/null || true
   iptables -t nat -F "$CHAIN_NAT"
   iptables -t nat -C PREROUTING -i "$in_iface" -j "$CHAIN_NAT" 2>/dev/null || iptables -t nat -A PREROUTING -i "$in_iface" -j "$CHAIN_NAT"
@@ -173,11 +178,13 @@ apply_rules(){
   iptables -A "$CHAIN_FWD" -d "$target" -j ACCEPT
   iptables -A "$CHAIN_FWD" -s "$target" -j ACCEPT
 
+  log "开启内核转发开关"
   sysctl -q -w net.ipv4.ip_forward=1
 }
 
 clear_rules(){
   local target="$1" in_iface="${2:-}"
+  log "清理转发规则"
   [ -n "$in_iface" ] && iptables -t nat -D PREROUTING -i "$in_iface" -j "$CHAIN_NAT" 2>/dev/null || true
   iptables -t nat -D PREROUTING -j "$CHAIN_NAT" 2>/dev/null || true
   iptables -t nat -D POSTROUTING -d "$target" -j MASQUERADE 2>/dev/null || true
@@ -229,22 +236,27 @@ EOF
 
 case "${1:-}" in
   install)
+    log "开始安装"
     ensure_deps
     need_cmd sysctl
     need_cmd systemctl
     target=$(prompt_target_ip "${2:-}")
     exclude_ports=$(prompt_exclude_ports)
     in_iface=$(choose_iface)
+    log "写入配置：TARGET_IP=$target EXCLUDE_PORTS=$exclude_ports IN_IFACE=$in_iface"
     cat > "$CONFIG" <<EOF
 TARGET_IP=$target
 EXCLUDE_PORTS="$exclude_ports"
 IN_IFACE="$in_iface"
 EOF
+    log "生成运行脚本与 systemd unit"
     write_runtime
     write_service
+    log "启用并启动服务"
     systemctl enable --now port-forward.service
     ;;
   uninstall)
+    log "开始卸载"
     systemctl disable --now port-forward.service 2>/dev/null || true
     "$RUNTIME" stop 2>/dev/null || true
     rm -f "$SERVICE" "$RUNTIME" "$CONFIG"
