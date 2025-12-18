@@ -19,6 +19,20 @@ draft: false
 - 重启后要自动恢复，必要时要一键还原。
 - 环境为 Debian/Ubuntu 或 CentOS/RHEL，iptables + systemd 可用。
 
+## 获取脚本（推荐）
+脚本已放在 Gist，建议以 Gist 为准（文章内也附了同版本源码，便于直接阅读）。
+
+- Gist 页面：https://gist.github.com/luodaoyi/1f6d406b6b797da078b0480608e61ae9
+- Raw（固定版本，推荐）：https://gist.githubusercontent.com/luodaoyi/1f6d406b6b797da078b0480608e61ae9/raw/9a568b9b0452c68502663b6c32c68f37a6d0a1e9/iptables-forward
+- 短链接（方便，但不建议在自动化里依赖）：https://dub.sh/Q24iKiU
+
+下载并执行（建议保存为 `pfwd-manage.sh`）：
+```bash
+curl -fsSL https://dub.sh/Q24iKiU -o pfwd-manage.sh
+chmod +x pfwd-manage.sh
+sudo ./pfwd-manage.sh install
+```
+
 ## 脚本（管理 ≠ 运行）
 推荐分层：管理脚本只做安装/卸载；systemd 只调用运行脚本，避免循环调用。
 
