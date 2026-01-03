@@ -64,6 +64,13 @@ Team Foundation Server 2013 |`MHG9J-HHHX9-WWPQP-D8T7H-7KCQG`
 Visual studio 2022 Enterprise | `VHF9H-NXBBB-638P6-6JHCY-88JWH  `
 Visual studio 2022 Pro |`TD244-P4NB7-YQ6XK-Y8MMM-YWV2J`
 
+## vs2026 
+> Visual Studio 2026 激活码（VS2026激活码）（VS2026密钥）
+版本|密钥
+----|----
+Visual studio 2026 Enterprise 企业版 | `VYGRN-WPR22-HG4X3-692BF-QGT2V`
+Visual studio 2026 Pro 专业版 |`NVTDK-QB8J9-M28GR-92BPC-BTHXK`
+
 ## SQL SERVER 2008 R2序列号:
 版本|密钥
 ----|----
