@@ -25,6 +25,13 @@ mainSections = ["posts"]
   category = "categories"
   tag = "tags"
 
+[outputs]
+  home = ["HTML", "RSS"]
+  page = ["HTML"]
+  section = ["HTML"]
+  taxonomy = ["HTML"]
+  term = ["HTML"]
+
 [frontmatter]
   lastmod = ["lastmod", ":git", ":fileModTime", ":default"]
 
@@ -101,26 +108,10 @@ mainSections = ["posts"]
     icon = "fa-solid fa-tags"
 
 [[menus.main]]
-  identifier = "archives"
-  name = "归档"
-  url = "/archives/"
-  weight = 5
-  [menus.main.params]
-    icon = "fa-solid fa-box-archive"
-
-[[menus.main]]
-  identifier = "search"
-  name = "搜索"
-  url = "/search/"
-  weight = 6
-  [menus.main.params]
-    icon = "fa-solid fa-search"
-
-[[menus.main]]
   identifier = "about"
   name = "关于"
   url = "/about/"
-  weight = 7
+  weight = 5
   [menus.main.params]
     icon = "fa-solid fa-user"
 
@@ -128,7 +119,7 @@ mainSections = ["posts"]
   identifier = "kms"
   name = "KMS"
   url = "/posts/kms/"
-  weight = 8
+  weight = 6
   [menus.main.params]
     icon = "fa-solid fa-key"
 
@@ -136,7 +127,7 @@ mainSections = ["posts"]
   identifier = "keys"
   name = "激活"
   url = "/posts/keys/"
-  weight = 9
+  weight = 7
   [menus.main.params]
     icon = "fa-solid fa-unlock-keyhole"
 
@@ -170,7 +161,7 @@ mainSections = ["posts"]
     svgFavicon = ""
 
   [params.search]
-    enable = true
+    enable = false
     type = "fuse"
     contentLength = 4000
     maxResultLength = 10
@@ -211,10 +202,6 @@ mainSections = ["posts"]
       enable = true
       hugoLogo = true
       themeLogo = true
-
-  [params.archives]
-    paginate = 50
-    dateFormat = "01-02"
 
   [params.section]
     paginate = 20
