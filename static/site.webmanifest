@@ -1,0 +1,19 @@
+{
+  "name": "luodaoyi's Blog",
+  "short_name": "luodaoyi",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#f8f8f8",
+  "background_color": "#f8f8f8",
+  "display": "standalone"
+}
