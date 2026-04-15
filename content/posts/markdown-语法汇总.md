@@ -270,10 +270,10 @@ Markdown的使用者：
  [3]: http://infogami.org/
  [4]: http://www.reddit.com/
  [5]: https://github.com/younghz/Markdown/raw/master/Res/Aaron_Swartz.jpg "Aaron"
- [6]: [https://github.com/luodaoyi/](https://github.com/luodaoyi/)
- [7]: https://github.com/luodaoyi"
- [8]: [http://luodaoyi.com](http://luodaoyi.com)
- [9]: [https://52res.taobao.com](https://52res.taobao.com)
+ [6]: https://github.com/luodaoyi/
+ [7]: https://github.com/luodaoyi
+ [8]: http://luodaoyi.com
+ [9]: https://52res.taobao.com
  [10]: http://luodaoyi.com
  [11]: https://52res.taobao.com
  [12]: http://blog.codinghorror.com/standard-markdown-is-now-common-markdown/
