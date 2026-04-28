@@ -4,7 +4,7 @@ categories: [ "项目","开发","工具" ]
 tags: [ "ResMed", "瑞思迈", "CPAP", "APAP", "Python", "PySide6", "QML", "医疗数据" ]
 draft: false
 slug: "我做了一个本地版瑞思迈呼吸机数据分析工具-breathelens"
-date: "2026-04-28 13:50:00"
+date: "2026-04-28T13:50:00+08:00"
 ---
 
 最近我做了一个新项目，叫 **BreatheLens**。
