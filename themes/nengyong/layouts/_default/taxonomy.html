@@ -1,0 +1,17 @@
+{{ define "main" }}
+<div class="container">
+  {{- partial "breadcrumb.html" . -}}
+  <header class="page-header">
+    <p class="page-kicker">{{ .Data.Singular | default .Data.Plural }}</p>
+    <h1 class="page-title">{{ .Title }}</h1>
+    <p class="page-count">共 {{ len .Pages }} 篇</p>
+  </header>
+  <section class="post-list">
+    {{- $paginator := .Paginate .Pages 20 -}}
+    {{- range $paginator.Pages -}}
+      {{- partial "post-card.html" . -}}
+    {{- end -}}
+    {{- partial "pagination.html" . -}}
+  </section>
+</div>
+{{ end }}

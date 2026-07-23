@@ -1,0 +1,55 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{{- $title := .Title -}}
+{{- if .IsHome -}}
+  {{- $title = .Site.Title -}}
+{{- else if .Title -}}
+  {{- $title = printf "%s %s %s" .Title (.Site.Params.titleDelimiter | default "|") .Site.Title -}}
+{{- end -}}
+<title>{{ $title }}</title>
+{{- $desc := .Description | default .Summary | default .Site.Params.description | plainify | htmlUnescape | truncate 160 -}}
+<meta name="description" content="{{ $desc }}">
+{{- with .Site.Params.keywords -}}
+<meta name="keywords" content="{{ delimit . ", " }}">
+{{- end -}}
+<meta name="author" content="{{ .Site.Params.author.name | default .Site.Title }}">
+<link rel="canonical" href="{{ .Permalink }}">
+
+{{- /* Open Graph */ -}}
+<meta property="og:title" content="{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }}{{ end }}">
+<meta property="og:description" content="{{ $desc }}">
+<meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta property="og:site_name" content="{{ .Site.Title }}">
+{{- with .Site.Params.images -}}
+<meta property="og:image" content="{{ index . 0 | absURL }}">
+{{- end -}}
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }}{{ end }}">
+<meta name="twitter:description" content="{{ $desc }}">
+
+<link rel="icon" href="{{ "favicon.ico" | relURL }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ "favicon-32x32.png" | relURL }}">
+<link rel="apple-touch-icon" href="{{ "apple-touch-icon.png" | relURL }}">
+{{- with .OutputFormats.Get "RSS" -}}
+<link rel="alternate" type="application/rss+xml" title="{{ $.Site.Title }}" href="{{ .RelPermalink }}">
+{{- end -}}
+
+<script>
+  (function () {
+    var k = "nengyong-theme";
+    var s = localStorage.getItem(k);
+    var m = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var t = s || "auto";
+    var resolved = t === "auto" ? (m ? "dark" : "light") : t;
+    document.documentElement.setAttribute("data-theme", resolved);
+    document.documentElement.setAttribute("data-theme-pref", t);
+  })();
+</script>
+
+{{- $cssMain := resources.Get "css/main.css" -}}
+{{- $cssChromaL := resources.Get "css/chroma-light.css" -}}
+{{- $cssChromaD := resources.Get "css/chroma-dark.css" -}}
+{{- $css := slice $cssMain $cssChromaL $cssChromaD | resources.Concat "css/nengyong.css" | minify | fingerprint -}}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}">

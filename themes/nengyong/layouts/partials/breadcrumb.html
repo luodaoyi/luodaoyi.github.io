@@ -1,0 +1,20 @@
+{{- if default true .Site.Params.breadcrumb.enable -}}
+{{- if not .IsHome -}}
+<nav class="breadcrumb" aria-label="面包屑">
+  <a href="{{ "/" | relURL }}">首页</a>
+  {{- if .Section -}}
+  {{- $secTitle := .Section -}}
+  {{- if eq .Section "posts" -}}{{- $secTitle = "文章" -}}{{- end -}}
+  {{- with .Site.GetPage (printf "/%s" .Section) -}}
+    {{- $secTitle = .LinkTitle | default .Title | default $secTitle -}}
+  {{- end -}}
+  <span class="bc-sep">/</span>
+  <a href="{{ .Section | relURL }}/">{{ $secTitle }}</a>
+  {{- end -}}
+  {{- if and .Title (not .IsSection) -}}
+  <span class="bc-sep">/</span>
+  <span class="bc-current">{{ .Title | truncate 40 }}</span>
+  {{- end -}}
+</nav>
+{{- end -}}
+{{- end -}}

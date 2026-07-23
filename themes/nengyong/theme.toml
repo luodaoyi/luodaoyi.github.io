@@ -1,0 +1,12 @@
+name = "nengyong"
+license = "MIT"
+licenselink = "https://opensource.org/licenses/MIT"
+description = "务实、可读、能用就行。为中文技术博客设计的 Hugo 主题。"
+homepage = "https://github.com/luodaoyi/luodaoyi.github.io"
+tags = ["blog", "responsive", "dark", "chinese", "technical", "minimal"]
+features = ["dark mode", "toc", "syntax highlight", "utterances", "related posts"]
+min_version = "0.120.0"
+
+[author]
+  name = "luodaoyi"
+  homepage = "https://luodaoyi.com/"

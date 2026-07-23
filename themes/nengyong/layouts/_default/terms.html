@@ -1,0 +1,17 @@
+{{ define "main" }}
+<div class="container">
+  {{- partial "breadcrumb.html" . -}}
+  <header class="page-header">
+    <h1 class="page-title">{{ .Title }}</h1>
+    <p class="page-count">共 {{ len .Data.Terms }} 个</p>
+  </header>
+  <div class="terms-cloud">
+    {{- range .Data.Terms.ByCount -}}
+    <a class="term-item" href="{{ .Page.RelPermalink }}">
+      <span class="term-name">{{ .Page.Title }}</span>
+      <span class="term-count">{{ .Count }}</span>
+    </a>
+    {{- end -}}
+  </div>
+</div>
+{{ end }}

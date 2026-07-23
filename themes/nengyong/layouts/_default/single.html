@@ -1,0 +1,77 @@
+{{ define "main" }}
+{{- $isPost := eq .Section "posts" -}}
+<article class="container article{{ if $isPost }} has-toc{{ end }}">
+  {{- partial "breadcrumb.html" . -}}
+  <header class="article-header">
+    <h1 class="article-title">{{ .Title }}</h1>
+    {{- if $isPost -}}
+      {{- partial "post-meta.html" (dict "page" . "showViews" true) -}}
+    {{- end -}}
+  </header>
+
+  <div class="article-layout">
+    <div class="article-body">
+      <div class="content prose">
+        {{ .Content }}
+      </div>
+
+      {{- with .GetTerms "tags" -}}
+      <div class="article-tags">
+        <span class="label">标签</span>
+        <div class="tag-list">
+          {{- range . -}}
+          <a class="tag" href="{{ .RelPermalink }}">{{ .Data.Term | default .Title }}</a>
+          {{- end -}}
+        </div>
+      </div>
+      {{- end -}}
+
+      {{- if $isPost -}}
+      <footer class="article-footer">
+        {{- with .Site.Params.page.license | default .Site.Copyright -}}
+        <p class="license">本文采用 {{ . | safeHTML }} 协议发布。</p>
+        {{- end -}}
+        {{- if or .Site.Params.page.linkToSource .Site.Params.page.linkToEdit -}}
+        <p class="source-links">
+          {{- $repo := .Site.Params.gitInfo.repo -}}
+          {{- $branch := .Site.Params.gitInfo.branch | default "main" -}}
+          {{- $dir := .Site.Params.gitInfo.dir | default "content" -}}
+          {{- if and $repo .File -}}
+            {{- $filePath := replace .File.Path "\\" "/" -}}
+            {{- if .Site.Params.page.linkToSource -}}
+            <a href="{{ $repo }}/blob/{{ $branch }}/{{ $dir }}/{{ $filePath }}" target="_blank" rel="noopener">源码</a>
+            {{- end -}}
+            {{- if .Site.Params.page.linkToEdit -}}
+            <a href="{{ $repo }}/edit/{{ $branch }}/{{ $dir }}/{{ $filePath }}" target="_blank" rel="noopener">编辑</a>
+            {{- end -}}
+          {{- end -}}
+        </p>
+        {{- end -}}
+      </footer>
+
+      <nav class="post-nav" aria-label="相邻文章">
+        {{- with .PrevInSection -}}
+        <a class="post-nav-item prev" href="{{ .RelPermalink }}">
+          <span class="post-nav-label">上一篇</span>
+          <span class="post-nav-title">{{ .Title }}</span>
+        </a>
+        {{- end -}}
+        {{- with .NextInSection -}}
+        <a class="post-nav-item next" href="{{ .RelPermalink }}">
+          <span class="post-nav-label">下一篇</span>
+          <span class="post-nav-title">{{ .Title }}</span>
+        </a>
+        {{- end -}}
+      </nav>
+
+      {{- partial "related.html" . -}}
+      {{- partial "comments.html" . -}}
+      {{- end -}}
+    </div>
+
+    {{- if $isPost -}}
+      {{- partial "toc.html" . -}}
+    {{- end -}}
+  </div>
+</article>
+{{ end }}

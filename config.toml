@@ -1,6 +1,6 @@
 baseURL = "https://luodaoyi.com/"
 title = "luodaoyi's Blog"
-theme = "FixIt"
+theme = "nengyong"
 languageCode = "zh-CN"
 languageName = "简体中文"
 defaultContentLanguage = "zh-cn"
@@ -11,6 +11,7 @@ enableGitInfo = true
 enableEmoji = true
 summaryLength = 120
 mainSections = ["posts"]
+capitalizeListTitles = false
 
 [pagination]
   pagerSize = 20

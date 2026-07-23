@@ -1,0 +1,12 @@
+{{- if and (ne .Params.toc false) (default true .Site.Params.page.toc.enable) -}}
+{{- with .TableOfContents -}}
+{{- if and . (ne . "<nav id=\"TableOfContents\"></nav>") -}}
+<aside class="toc" id="toc">
+  <div class="toc-inner">
+    <div class="toc-title">目录</div>
+    {{ . }}
+  </div>
+</aside>
+{{- end -}}
+{{- end -}}
+{{- end -}}

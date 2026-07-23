@@ -1,0 +1,30 @@
+{{ define "main" }}
+<div class="container home">
+  <section class="home-intro">
+    <div class="intro-mark" aria-hidden="true">//</div>
+    <h1 class="intro-title">{{ .Site.Title }}</h1>
+    {{- with .Site.Params.header.subtitle.name -}}
+    <p class="intro-tagline">{{ . }}</p>
+    {{- end -}}
+    {{- with .Site.Params.description -}}
+    <p class="intro-desc">{{ . }}</p>
+    {{- end -}}
+    <div class="intro-meta">
+      {{- with .Site.Params.author.name -}}
+      <span>{{ . }}</span>
+      {{- end -}}
+      <span>since {{ .Site.Params.footer.since | default "2014" }}</span>
+      <span>{{ len (where .Site.RegularPages "Type" "in" .Site.Params.mainSections) }} 篇文章</span>
+    </div>
+  </section>
+
+  <section class="post-list" aria-label="最新文章">
+    {{- $pages := where .Site.RegularPages "Type" "in" .Site.Params.mainSections -}}
+    {{- $paginator := .Paginate $pages (.Site.Params.home.posts.paginate | default .Site.Params.section.paginate | default 20) -}}
+    {{- range $paginator.Pages -}}
+      {{- partial "post-card.html" . -}}
+    {{- end -}}
+    {{- partial "pagination.html" . -}}
+  </section>
+</div>
+{{ end }}

@@ -1,0 +1,41 @@
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-meta">
+      {{- $since := .Site.Params.footer.since | default "2014" -}}
+      {{- $year := now.Format "2006" -}}
+      <p>
+        &copy;
+        {{- if ne (printf "%s" $since) $year -}}{{ $since }}–{{ end -}}{{ $year }}
+        {{- with .Site.Params.author.name -}}
+        · <a href="{{ $.Site.Params.author.link | default "/" | relURL }}">{{ . }}</a>
+        {{- end -}}
+      </p>
+      {{- with .Site.Params.footer.license | default .Site.Copyright -}}
+      <p class="footer-license">{{ . | safeHTML }}</p>
+      {{- end -}}
+      {{- if .Site.Params.busuanzi.enable -}}
+      <p class="footer-stats" id="busuanzi_container_site_pv" style="display:none">
+        本站总访问量 <span id="busuanzi_value_site_pv"></span> 次
+        · 访客 <span id="busuanzi_value_site_uv"></span> 人
+      </p>
+      {{- end -}}
+    </div>
+    <div class="footer-links">
+      {{- with .Site.Params.social.GitHub -}}
+      <a href="https://github.com/{{ . }}" rel="me noopener" target="_blank">GitHub</a>
+      {{- end -}}
+      {{- with .Site.Params.social.Email -}}
+      <a href="mailto:{{ . }}">Email</a>
+      {{- end -}}
+      {{- with .OutputFormats.Get "RSS" -}}
+      <a href="{{ .RelPermalink }}">RSS</a>
+      {{- else -}}
+      <a href="{{ "index.xml" | relURL }}">RSS</a>
+      {{- end -}}
+      <span class="footer-powered">Hugo · nengyong</span>
+    </div>
+  </div>
+</footer>
+{{- if .Site.Params.busuanzi.enable -}}
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+{{- end -}}

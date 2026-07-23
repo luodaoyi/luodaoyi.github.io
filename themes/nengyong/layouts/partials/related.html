@@ -1,0 +1,16 @@
+{{- if default true .Site.Params.page.related.enable -}}
+{{- $related := .Site.RegularPages.Related . | first (.Site.Params.page.related.count | default 5) -}}
+{{- with $related -}}
+<section class="related">
+  <h2 class="section-title">相关文章</h2>
+  <ul class="related-list">
+    {{- range . -}}
+    <li>
+      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+      <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format ($.Site.Params.dateFormat | default "2006.1.2") }}</time>
+    </li>
+    {{- end -}}
+  </ul>
+</section>
+{{- end -}}
+{{- end -}}

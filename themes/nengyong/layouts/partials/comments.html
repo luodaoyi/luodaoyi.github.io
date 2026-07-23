@@ -1,0 +1,20 @@
+{{- $c := .Site.Params.page.comment -}}
+{{- if and (default true $c.enable) (ne .Params.comment false) -}}
+{{- with $c.utterances -}}
+{{- if .enable -}}
+<section class="comments" id="comments">
+  <h2 class="section-title">评论</h2>
+  <div class="utterances-wrap">
+    <script src="https://utteranc.es/client.js"
+      repo="{{ .repo }}"
+      issue-term="{{ .issueTerm | default "pathname" }}"
+      {{- with .label }}label="{{ . }}"{{ end }}
+      theme="preferred-color-scheme"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </div>
+</section>
+{{- end -}}
+{{- end -}}
+{{- end -}}

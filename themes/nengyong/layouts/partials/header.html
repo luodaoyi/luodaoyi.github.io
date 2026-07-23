@@ -1,0 +1,32 @@
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="{{ "/" | relURL }}">
+      {{- with .Site.Params.header.title.logo -}}
+      <img class="brand-logo" src="{{ . | relURL }}" alt="" width="28" height="28">
+      {{- end -}}
+      <span class="brand-text">
+        <span class="brand-name">{{ .Site.Params.header.title.name | default .Site.Title }}</span>
+        {{- with .Site.Params.header.subtitle.name -}}
+        <span class="brand-sub">{{ . }}</span>
+        {{- end -}}
+      </span>
+    </a>
+
+    <nav class="nav" aria-label="主导航">
+      {{- range .Site.Menus.main -}}
+      <a class="nav-link{{ if or ($.IsMenuCurrent "main" .) ($.HasMenuCurrent "main" .) }} is-active{{ end }}" href="{{ .URL }}">{{ .Name }}</a>
+      {{- end -}}
+    </nav>
+
+    <div class="header-actions">
+      <button type="button" class="theme-toggle" id="theme-toggle" aria-label="切换主题" title="切换主题">
+        <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+        <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+        <span class="theme-icon theme-icon-auto" aria-hidden="true">◐</span>
+      </button>
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-label="菜单" aria-expanded="false">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>

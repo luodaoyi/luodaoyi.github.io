@@ -1,0 +1,32 @@
+{{- $page := .page | default . -}}
+{{- $showViews := .showViews | default false -}}
+{{- $dateFormat := $page.Site.Params.dateFormat | default "2006.1.2" -}}
+<div class="post-meta">
+  <span class="meta-item">
+    <time datetime="{{ $page.Date.Format "2006-01-02T15:04:05Z07:00" }}">{{ $page.Date.Format $dateFormat }}</time>
+  </span>
+  {{- if ne ($page.Lastmod.Format "2006-01-02") ($page.Date.Format "2006-01-02") -}}
+  <span class="meta-item meta-muted">更新 {{ $page.Lastmod.Format $dateFormat }}</span>
+  {{- end -}}
+  {{- with $page.GetTerms "categories" -}}
+  <span class="meta-item">
+    {{- range $i, $t := . -}}
+      {{- if $i }} · {{ end -}}
+      <a href="{{ $t.RelPermalink }}">{{ $t.Data.Term | default $t.Title }}</a>
+    {{- end -}}
+  </span>
+  {{- end -}}
+  {{- if not $page.Params.HideReadingInfo -}}
+  <span class="meta-item meta-muted">
+    {{- $wc := $page.WordCount -}}
+    {{- if ge $wc 1000 -}}约 {{ div $wc 1000 }}.{{ mod (div $wc 100) 10 }}k 字
+    {{- else -}}{{ $wc }} 字{{- end -}}
+    · {{ $page.ReadingTime }} 分钟
+  </span>
+  {{- end -}}
+  {{- if and $showViews $page.Site.Params.busuanzi.enable $page.Site.Params.busuanzi.pageViews -}}
+  <span class="meta-item meta-muted" id="busuanzi_container_page_pv" style="display:none">
+    阅读 <span id="busuanzi_value_page_pv"></span>
+  </span>
+  {{- end -}}
+</div>

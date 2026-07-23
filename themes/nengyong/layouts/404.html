@@ -1,0 +1,8 @@
+{{ define "main" }}
+<div class="container error-page">
+  <p class="error-code">404</p>
+  <h1 class="page-title">页面不存在</h1>
+  <p class="intro-desc">这个地址没有对应内容。可能是链接写错了，也可能是页面搬家了。</p>
+  <p><a class="btn" href="{{ "/" | relURL }}">回首页</a></p>
+</div>
+{{ end }}
