@@ -1,9 +1,6 @@
 <header class="site-header">
   <div class="container header-inner">
     <a class="brand" href="{{ "/" | relURL }}">
-      {{- with .Site.Params.header.title.logo -}}
-      <img class="brand-logo" src="{{ . | relURL }}" alt="" width="28" height="28">
-      {{- end -}}
       <span class="brand-text">
         <span class="brand-name">{{ .Site.Params.header.title.name | default .Site.Title }}</span>
         {{- with .Site.Params.header.subtitle.name -}}

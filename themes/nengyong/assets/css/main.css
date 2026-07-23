@@ -179,11 +179,6 @@ video {
   color: inherit;
 }
 
-.brand-logo {
-  border-radius: 7px;
-  flex-shrink: 0;
-}
-
 .brand-text {
   display: flex;
   flex-direction: column;

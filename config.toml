@@ -138,7 +138,7 @@ capitalizeListTitles = false
   keywords = ["技术博客", "Linux", "编程", "逆向", "网络", "Hugo"]
   defaultTheme = "auto"
   dateFormat = "2006.1.2"
-  images = ["/apple-touch-icon.png"]
+  images = []
   capitalizeTitles = false
   withSiteTitle = true
   titleDelimiter = "|"
@@ -149,7 +149,7 @@ capitalizeListTitles = false
     name = "luodaoyi"
     email = "luodaoyi@gmail.com"
     link = "https://luodaoyi.com/"
-    avatar = "/apple-touch-icon.png"
+    avatar = ""
 
   [params.gitInfo]
     repo = "https://github.com/luodaoyi/luodaoyi.github.io"
@@ -174,7 +174,7 @@ capitalizeListTitles = false
     mobileMode = "auto"
 
     [params.header.title]
-      logo = "/apple-touch-icon.png"
+      logo = ""
       name = "luodaoyi's Blog"
       typeit = false
 
@@ -231,7 +231,7 @@ capitalizeListTitles = false
       anonymizeIP = true
 
   [params.page]
-    authorAvatar = true
+    authorAvatar = false
     hiddenFromHomePage = false
     hiddenFromSearch = false
     hiddenFromRelated = false
