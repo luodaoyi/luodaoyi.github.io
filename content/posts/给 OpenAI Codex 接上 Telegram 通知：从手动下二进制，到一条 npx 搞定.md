@@ -1,5 +1,5 @@
 ---
-title: "给 OpenAI Codex 接上 Telegram 通知：从手动下二进制，到一条 npx 搞定"
+title: "给 OpenAI Codex 接上通知：现在用 codex-notify"
 categories: [ "工具","开发" ]
 tags: [ "codex", "telegram", "npm", "rust", "openai" ]
 draft: false
