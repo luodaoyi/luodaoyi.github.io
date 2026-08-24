@@ -5,6 +5,7 @@ tags: [ "Komari", "Zig", "Agent", "监控", "OpenWrt", "VPS", "自托管" ]
 draft: false
 slug: "我用-zig-重写了-komari-agent"
 date: "2026-05-02T18:24:00+08:00"
+lastmod: "2026-08-24T20:00:00+08:00"
 ---
 
 最近我又折腾了一个小项目，叫 **komari-zig-agent**。
@@ -55,11 +56,17 @@ Komari 本身是一个挺顺手的探针监控面板。
 
 也就是说，它不是只会发几个指标的玩具 agent，而是按“替换原 agent”这个方向做的。
 
+当前对齐官方 Go agent **1.2.60**，并吸收了 Snapshot-260727 的非 root systemd user 安装和 Windows NVIDIA 详细 GPU 指标。工具链是 Zig 0.16。Linux Release 覆盖 11 个架构，包含 loong64。自更新会校验 SHA256，失败不覆盖原二进制。
+
+
 ## 资源占用低很多
 
 这个项目最直接的意义，就是轻。
 
-我在 README 里放了一组对比数据，测试环境是 Debian Linux 6.1 x86_64，Go 版用官方 `komari-monitor/komari-agent` 1.1.93，Zig 版用本仓库 ReleaseSmall 构建。
+我在 README 里放了一组对比数据，测试环境是 Debian Linux 6.1 x86_64，Go 版用官方 `komari-monitor/komari-agent` 1.2.13，Zig 版用本仓库 ReleaseSmall 构建。
+
+表里的数字仍是 README 那组实测，我没有为这篇文章重新跑一遍。
+
 
 | 指标 | 原 Go agent | Zig agent |
 | --- | ---: | ---: |
@@ -109,7 +116,7 @@ Zig 版 linux-amd64 二进制大约 700 KB，RSS 约 1.2 MB，systemd 看到的�
 
 现在 Release 已经覆盖不少平台资产：
 
-- Linux：amd64、arm64、386、arm、mips、mipsel、riscv64
+- Linux：amd64、arm64、386、arm、mips、mipsel、mips64、mips64el、riscv64、s390x、loong64
 - FreeBSD：amd64、arm64、386、arm
 - macOS：amd64、arm64
 - Windows：amd64、arm64、386
@@ -155,8 +162,17 @@ wget -O- https://raw.githubusercontent.com/luodaoyi/komari-zig-agent/main/instal
 如果机器上已经有原来的 Go 版 `komari-agent`，可以直接走替换脚本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/luodaoyi/komari-zig-agent/main/replace.sh | sudo sh
+curl -fsSL https://raw.githubusercontent.com/luodaoyi/komari-zig-agent/bd2e0b8de76a11601d57b1663e9002912e1a82f2/replace.sh | sudo sh
 ```
+
+国内访问 GitHub 不稳定时，README 给的是同一提交的 jsDelivr：
+
+```sh
+curl -fsSL https://cdn.jsdelivr.net/gh/luodaoyi/komari-zig-agent@bd2e0b8de76a11601d57b1663e9002912e1a82f2/replace.sh | sudo sh
+```
+
+脚本会校验 SHA256SUMS；下载、校验或启动失败时不覆盖正在用的 Agent。
+
 
 这个脚本做了几件比较保守的事：
 
@@ -175,10 +191,12 @@ curl -fsSL https://raw.githubusercontent.com/luodaoyi/komari-zig-agent/main/repl
 写这篇文章时，最新版本是：
 
 ```text
-v0.1.5
+v0.1.47
 ```
 
-这一版已经加了自更新回滚。前面几版也陆续补了 WebSocket 生命周期加固、安装替换脚本加固、CLI 兼容、多架构 Release 等东西。
+对齐官方 Go 1.2.60，工具链 Zig 0.16，Linux 11 架构（含 loong64）。自更新带 SHA256 校验。Windows WebShell 仍有未关闭的问题，这里不写成已经修好。
+
+
 
 ## 适合谁用
 

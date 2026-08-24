@@ -5,6 +5,7 @@ tags: [ "Grok", "Codex", "Claude Code", "OpenCode", "Rust", "Agent Skill", "AI �
 draft: false
 slug: "让-codex-和-claude-code-调用-grok-grok-build-本地-runtime-bridge"
 date: "2026-07-23T13:00:00+08:00"
+lastmod: "2026-08-24T20:00:00+08:00"
 ---
 
 最近我做了一个更重要的项目：**grok-build**。
@@ -165,6 +166,8 @@ http://127.0.0.1:47653
 
 最近版本的 WebUI 使用实时 WebSocket 事件流和 xterm.js 终端，不需要一直用两秒一次的轮询去刷新整页。终端默认是只读的，需要手工输入时再显式打开输入能力。
 
+0.8.3 之后已经合进去的几处，我用下来比较有感：WebUI 补了多语言和字体，Windows 上 named pipe 空读不再被当成 EOF，ConPTY 也会在 Grok PID 握手前先泵数据。这篇不展开变更列表。
+
 WebUI 的定位是“查看和管理”，不是替代编辑器或 Git。代码、命令和文件仍然在本机工作目录里。
 
 ## 怎么安装
@@ -183,12 +186,15 @@ grok --version
 
 打开 [grok-bridge-rs Releases](https://github.com/luodaoyi/grok-bridge-rs/releases) 页面，下载最新的 Skill 压缩包。
 
-截至 2026 年 7 月 23 日，最新版本是 **v0.8.2**：
+截至 2026 年 8 月 24 日，最新版本是 **v0.8.11**：
 
 ~~~text
-grok-build-skill-v0.8.2.zip
-grok-build-skill-v0.8.2.zip.sha256
+grok-build-skill-v0.8.11.zip
+grok-build-skill-v0.8.11.zip.sha256
 ~~~
+
+仓库 README 现在也写了包管理器全局安装这一路，装完用中文 TUI 更新 Skill 即可。ZIP 仍然可用。
+
 
 建议先用 .sha256 文件校验压缩包，再解压到当前宿主 Agent 的用户级 Skill 目录。解压后的目录名应当是：
 
@@ -299,9 +305,9 @@ grok-build 解决的是后面这种状态机问题。
 
 ## 当前版本和平台
 
-截至 2026 年 7 月 23 日：
+截至 2026 年 8 月 24 日：
 
-- 最新版本：v0.8.2
+- 最新版本：v0.8.11
 - 项目语言：Rust
 - 许可证：MIT
 - Windows：x86_64、ARM64

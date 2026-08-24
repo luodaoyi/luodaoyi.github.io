@@ -5,6 +5,7 @@ tags: [ "ssl", "tls", "证书监控", "golang", "react", "docker" ]
 draft: false
 slug: "我写了一个证书监控系统-叫-certwarden"
 date: "2026-04-20 14:25:00"
+lastmod: "2026-08-24T20:00:00+08:00"
 ---
 
 我最近整理了一个自己之前写的项目，叫 **Certwarden**。
@@ -120,6 +121,9 @@ Certwarden 支持：
 /status/{tenantId}
 ```
 
+现在告警也能点回状态页。Telegram 和邮件证书通知里可以带上该域名的公开状态链接，格式是 `{APP_BASE_URL}/status/{tenantId}?domain={domainId}`，状态页会按这个 query 展开对应主机。没配 `APP_BASE_URL` 时，这条详情不会写进通知。
+
+
 而且还支持自定义标题和副标题。
 
 这件事在真实业务里很重要。
@@ -220,7 +224,7 @@ Certwarden 不是那种“后端有了，前端凑合一下”的项目。
 仓库当前版本是：
 
 ```text
-v1.0.1
+v1.3.4
 ```
 
 而且从最近几次提交也能看出来，这项目不是“堆个 demo 就不管了”，而是在持续补齐产品层面的东西，比如：
