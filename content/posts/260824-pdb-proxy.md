@@ -20,15 +20,13 @@ lastmod: "2026-08-24T20:00:00+08:00"
 
 <!--more-->
 
-我自己对外提供的节点是：
+我这边对外的节点只有这个：
 
 <https://msdl.011f.com>
 
-别人公开的节点不是我的，别写成自己的。
+## 使用方法
 
-## 怎么装
-
-Linux 跑仓库里的 install.sh：
+Linux 跑仓库里的 `install.sh`：
 
 ```shell
 curl -o- https://raw.githubusercontent.com/luodaoyi/pdb_proxy/master/install.sh | bash
@@ -67,9 +65,7 @@ Docker 用仓库根目录那份 `docker-compose.yml`。永久缓存：
 PDB_CACHE_TTL=0 docker compose up -d
 ```
 
-Compose 里默认同样是 `1h`，上游是微软符号服务器，端口 `9000:9000`，缓存卷 `./pdb:/opt/pdb`。
-
-过期后会回源刷新；回源失败时继续用手里这份已经过期的缓存，不把请求直接打挂。
+Compose 里默认同样是 `1h`，上游是微软符号服务器，端口 `9000:9000`，缓存卷 `./pdb:/opt/pdb`。过期后会回源刷新；回源失败时继续用手里这份已经过期的缓存。
 
 ## 链接
 
