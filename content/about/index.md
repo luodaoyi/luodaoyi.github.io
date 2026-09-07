@@ -10,6 +10,12 @@ description: 小学生一枚
 
 这里放一些我最近写过、整理过，或者还在持续维护的小东西。
 
+### [memocap](https://github.com/luodaoyi/memocap)
+
+`忆时` `记忆` `SQLite` `Codex` `Claude` `Pi` `OpenCode` `Grok`
+
+忆时记忆系统，当前是 v0.1.4。一份本地 SQLite，给 Codex / Claude / Pi / OpenCode / Grok 共用：每轮先 recall，决策、偏好、任务、约定查过同类再 remember。也可以起带 token 的小服务，多机共用同一份库。
+
 ### [grok-bridge-rs](https://github.com/luodaoyi/grok-bridge-rs)
 
 `Grok` `grok-build` `Rust` `Codex` `Claude Code` `Runtime`
@@ -30,7 +36,7 @@ description: 小学生一枚
 
 `Pi` `Zig` `zls` `Skill` `TypeScript`
 
-给 Pi 用的 Zig 包，当前是 0.2.2。装上之后有 zig-0.16 和 zig-tiger-style 两个 Skill，再加上 zig_lsp_diagnostics，去问官方 zls 0.16。
+给 Pi 用的 Zig 包，当前是 0.2.4。装上之后有 zig-0.16 和 zig-tiger-style 两个 Skill，再加上 zig_lsp_diagnostics，去问官方 zls 0.16。
 
 相关介绍：[我给 Pi 做了个 Zig 包：两个 Skill，加上官方 zls 0.16 的诊断工具](/posts/pi-zig-skills/)
 
@@ -38,7 +44,7 @@ description: 小学生一枚
 
 `fnOS` `TAD6S4N10G` `温度` `功耗` `风扇` `Go`
 
-给 TAD6S4N10G 写的 fnOS 模块，当前是 v0.10.0。把温度、功耗、风扇和机箱按键放进飞牛原生界面。
+给 TAD6S4N10G 写的 fnOS 模块，当前是 v0.10.16。把温度、功耗、风扇和机箱按键放进飞牛原生界面。
 
 相关介绍：[我给 TAD6S4N10G 写了个 fnOS 模块：温度、功耗、风扇和机箱按键](/posts/tad6s4n10g-fnos/)
 
@@ -70,7 +76,7 @@ Windows 上的原生桌面挂件。读取本机 Codex 授权后，把 5 小时�
 
 `Komari` `Zig` `Agent` `监控` `OpenWrt` `VPS` `小内存设备`
 
-一个用 Zig 0.16 重写的 Komari Agent，当前是 v0.1.47。协议对齐官方 Go agent 1.2.60，同时把二进制体积、常驻内存和运行时负担压下来。
+一个用 Zig 0.16 重写的 Komari Agent，当前是 v0.1.49。协议对齐官方 Go agent 1.2.60，同时把二进制体积、常驻内存和运行时负担压下来。
 
 相关介绍：[我用 Zig 重写了 Komari Agent](/posts/%E6%88%91%E7%94%A8-zig-%E9%87%8D%E5%86%99%E4%BA%86-komari-agent/)
 
