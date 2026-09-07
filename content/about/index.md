@@ -16,6 +16,8 @@ description: 小学生一枚
 
 忆时记忆系统，当前是 v0.1.4。一份本地 SQLite，给 Codex / Claude / Pi / OpenCode / Grok 共用：每轮先 recall，决策、偏好、任务、约定查过同类再 remember。也可以起带 token 的小服务，多机共用同一份库。
 
+相关介绍：[我做了一个给多宿主共用的本地记忆：memocap（忆时）](/posts/memocap/)
+
 ### [grok-bridge-rs](https://github.com/luodaoyi/grok-bridge-rs)
 
 `Grok` `grok-build` `Rust` `Codex` `Claude Code` `Runtime`
