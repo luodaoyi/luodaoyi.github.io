@@ -1,5 +1,15 @@
 # 首页配图
 
+## 故事分镜中间姿势
+
+- 文件：`assets/images/story-transitions.png`，1086 × 1448，三列四行，共十二张中间姿势。
+- 生成方式：内置 ImageGen，参照原角色图集生成一次，再定向修整一次排列、留白及缺失道具。
+- 每行依次连接招呼→编程、编程→修主机、修主机→笔记、笔记→交流；与原五幕一起组成十七帧。
+- 页面交付：Hugo 转为 1086px WebP；只在桌面动态模式下预载。原有五幕图集继续用于主姿势、手机和静态展示。
+- 素材第三条横线实际位于约 y=1054，未严格四等分。实际边界记录在 `data/storyboard.toml`；网页保留纵横比，按边界去掉参考线并居中补白。
+- 动画逐帧显示单个人物，不叠加完整画面；说明文字单独淡出和入场。
+- 最终定向编辑提示词见 [story-transitions.prompt.txt](assets/images/story-transitions.prompt.txt)。
+
 ## 故事分镜人物
 
 - 文件：`assets/images/story-character.png`。

@@ -1,0 +1,49 @@
+Generated with the built-in ImageGen tool.
+Initial reference: story-character.png, used to preserve character identity, clothing, props, and watercolor style.
+Initial generation: twelve intermediate poses, three per transition, arranged in a 3-column by 4-row atlas. Transitions: waving to typing; typing to computer repair; computer repair to note-taking; note-taking to standing with coffee.
+
+Final targeted edit prompt (verbatim):
+
+Use case: identity-preserve.
+Edit target: the supplied twelve-pose watercolor character atlas. Make ONE corrected atlas. Preserve the same twelve poses in the same row-major order, the same adult man's exact identity, mature face, natural adult proportions, short black hair, thin black glasses, black blazer and black T-shirt, charcoal trousers, gray sneakers, and the same watercolor-and-pencil style. Preserve all existing furniture and hand actions, except for the two explicitly requested missing-prop repairs below.
+
+Primary edit: correct ONLY the atlas layout, scale, safety margins, and the two missing props. The current atlas has irregular row placement, with lower rows drifting upward into the preceding quarter of the image. Fully fix that problem. This is a technical production sprite sheet to be cut into twelve mathematically equal square tiles.
+
+CANVAS AND GRID ARE THE HIGHEST PRIORITY:
+- Portrait canvas of exact 3:4 width-to-height ratio, preferably 1536 x 2048 pixels.
+- Exactly 3 columns and exactly 4 rows of equal SQUARE cells. Each row MUST occupy EXACTLY one quarter of the total canvas height; each column MUST occupy EXACTLY one third of total width.
+- Draw a very faint light-gray, thin, straight technical divider line at x = 1/3 of width and x = 2/3 of width.
+- Draw a very faint light-gray, thin, straight technical divider line at y = 1/4 of height, y = 1/2 of height, and y = 3/4 of height.
+- These five continuous divider lines must accurately partition the canvas into twelve equal squares, with four perfectly equal row heights. At 1536 x 2048 this means vertical lines x=512 and x=1024, horizontal lines y=512, y=1024, y=1536.
+- Do not add an outside border, labels, cell numbers, or text. The pale lines are for later crop alignment.
+
+EXACT CELL CONTAINMENT:
+Each cell has an INNER SAFE SQUARE extending from 12% to 88% of its own width and from 12% to 88% of its own height. EVERY painted part of the entire scene — hair, body, hands, feet, table, chair, chair wheels, computer, notebook, coffee cup, and all shadows — MUST remain COMPLETELY WITHIN that cell's inner safe square. Leave at least 12% of the cell width/height as empty PURE WHITE space on ALL FOUR SIDES between any artwork and a divider line or canvas edge. Shrink the drawings as needed to obey this, rather than using the blank space from another cell. No head, foot, prop, or shadow may intrude into another cell. Do not allow later rows to creep upward. Do not preserve the original atlas's cramped spacing.
+
+Use consistent anatomical drawing scale across all twelve images, with all standing figures equally tall at that common scale; seated figures remain naturally shorter. Align ground contact to a common baseline around 86% of the height WITHIN EACH CELL. Reposition each entire scene independently into its mathematically assigned cell. White space is more important than making the figures large.
+
+PRESERVE THE TWELVE SCENES IN THEIR EXISTING ORDER:
+Row 1, occupying exactly y=0% to y=25% of the full canvas:
+1. Standing and lowering his arm beside the wooden laptop desk and black office chair.
+2. Bending his knees and beginning to sit at the laptop desk.
+3. Seated and reaching toward the laptop keyboard.
+Row 2, occupying exactly y=25% to y=50% of the full canvas:
+4. Seated at the laptop desk, turning toward the small computer tower.
+5. Standing bent slightly toward the computer tower, screwdriver in hand.
+6. Lowered toward the small work stool, reaching toward the computer case with screwdriver.
+Row 3, occupying exactly y=50% to y=75% of the full canvas:
+7. Moving up from beside the tower, with screwdriver and a thin dark notebook.
+8. Beginning to sit into the warm-gray upholstered armchair.
+9. Seated in the armchair and moving pen toward his notebook.
+Row 4, occupying exactly y=75% to y=100% of the full canvas:
+10. Seated in the armchair, closing his notebook and looking toward the viewer.
+11. Rising from the armchair with a small takeaway coffee cup.
+12. Standing with coffee, beginning a conversational open-hand gesture, chair nearby.
+
+MISSING-PROP REPAIRS:
+- Cell 1, top-left: add the same open gray laptop ON TOP of the wooden desk, matching the laptop design already used in cells 2, 3, and 4.
+- Cell 8, third row middle: add the same thin dark notebook OPEN across the man's lap as he is beginning to sit. Match the notebook design in cells 7, 9, and 10.
+Do not change any other pose, outfit, identity, or prop design. Do not add or remove scenes.
+
+BACKGROUND AND FINISH:
+Solid opaque pure white #FFFFFF background throughout, apart from the five extremely pale-gray technical divider lines. Keep all white safety-margin areas completely empty. No transparency, no checkerboard, no gray wash, no paper texture in the white areas. Preserve the delicate watercolor paper-cut aesthetic only within the subjects. No text, no logo, no watermark, no extra people, no extra poses. Deliver one complete corrected 3-column by 4-row technical atlas.

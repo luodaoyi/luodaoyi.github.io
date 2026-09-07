@@ -1,5 +1,5 @@
 {{- $posts := where .Site.RegularPages "Type" "in" .Site.Params.mainSections -}}
-<div class="profile-home" id="profile-top" data-storyboard>
+<div class="profile-home" id="profile-top" data-storyboard{{ with resources.Get "images/story-transitions.png" }}{{ $atlas := .Resize "1086x webp q88" }} data-story-transitions="{{ $atlas.RelPermalink }}" data-story-transition-layout="{{ $.Site.Data.storyboard.transitions | jsonify }}"{{ end }}>
   <section class="profile-hero" aria-labelledby="hero-title" data-story-section="intro">
     <div class="hero-copy">
       <div class="hero-identity">

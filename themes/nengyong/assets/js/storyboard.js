@@ -2,7 +2,7 @@
   "use strict";
 
   var root = document.querySelector("[data-storyboard]");
-  if (!root) return;
+  if (!root || !root.dataset.storyTransitions) return;
 
   var anchors = Array.from(root.querySelectorAll("[data-story-scene]"));
   var sections = Array.from(root.querySelectorAll("[data-story-section]"));
@@ -11,16 +11,49 @@
   var progress = nav.querySelector(".story-progress");
   var desktop = window.matchMedia("(min-width: 1000px)");
   var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var firstImage = anchors[0].querySelector("img");
+  var transitionImage = new Image();
+  var transitionLayout = JSON.parse(root.dataset.storyTransitionLayout);
+  var tileSize = transitionLayout.width / transitionLayout.columns;
+  var transitionsRequested = false;
   var stage = document.createElement("div");
   stage.className = "story-stage";
   stage.setAttribute("aria-hidden", "true");
 
-  var shots = anchors.map(function (anchor) {
-    var shot = anchor.querySelector(".story-shot").cloneNode(true);
-    shot.querySelector("img").loading = "eager";
-    stage.appendChild(shot);
-    return shot;
+  // A single opaque picture avoids double exposures of people, paper and captions.
+  var shot = anchors[0].querySelector(".story-shot").cloneNode(true);
+  var sprite = shot.querySelector(".story-sprite");
+  var picture = sprite.querySelector("img");
+  var caption = shot.querySelector(".story-caption");
+  var captions = anchors.map(function (anchor) {
+    return anchor.querySelector(".story-caption").innerHTML;
   });
+  var poses = [];
+  anchors.forEach(function (anchor, index) {
+    var original = anchor.querySelector(".story-sprite");
+    poses.push({
+      src: firstImage.src,
+      x: original.style.getPropertyValue("--sprite-x"),
+      y: original.style.getPropertyValue("--sprite-y"),
+      transition: false
+    });
+    if (index < anchors.length - 1) {
+      // Use the measured row edges, clipping out dividers without stretching the art.
+      var top = transitionLayout.row_edges[index];
+      var bottom = transitionLayout.row_edges[index + 1];
+      for (var column = 0; column < 3; column++) {
+        poses.push({
+          src: root.dataset.storyTransitions,
+          x: column,
+          y: (top + bottom - tileSize) / (2 * tileSize),
+          clipTop: (top + 2) / transitionLayout.height * 100,
+          clipBottom: (transitionLayout.height - bottom + 2) / transitionLayout.height * 100,
+          transition: true
+        });
+      }
+    }
+  });
+  stage.appendChild(shot);
   root.appendChild(stage);
 
   var points = [];
@@ -30,13 +63,21 @@
   var rootBottom = 0;
   var maxScroll = 0;
   var enabled = false;
-  var imageReady = false;
   var measureNeeded = true;
   var frame = 0;
   var activeName = null;
+  var phase = null;
+  var lastFrameAt = 0;
+  var shownPose = -1;
+  var shownSource = picture.getAttribute("src");
+  var shownCaption = 0;
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
+  }
+
+  function smoothstep(value) {
+    return value * value * (3 - 2 * value);
   }
 
   function measure() {
@@ -49,9 +90,18 @@
       return section.getBoundingClientRect().top + scrollY;
     });
 
-    enabled = desktop.matches && !reducedMotion.matches && imageReady;
+    var animated = desktop.matches && !reducedMotion.matches;
+    if (animated && !transitionsRequested) {
+      transitionsRequested = true;
+      transitionImage.src = root.dataset.storyTransitions;
+    }
+    enabled = animated && firstImage.complete && firstImage.naturalWidth > 0 &&
+      transitionImage.complete && transitionImage.naturalWidth > 0;
     root.classList.toggle("storyboard-enhanced", enabled);
-    if (!enabled) return;
+    if (!enabled) {
+      phase = null;
+      return;
+    }
 
     var rects = anchors.map(function (anchor) { return anchor.getBoundingClientRect(); });
     // Leave room below the illustration for its caption on shorter screens.
@@ -59,11 +109,12 @@
       ...rects.map(function (rect) { return rect.width; }));
     if (width < 220) {
       enabled = false;
+      phase = null;
       root.classList.remove("storyboard-enhanced");
       return;
     }
     stage.style.width = width + "px";
-    stageHeight = Math.max(...shots.map(function (shot) { return shot.offsetHeight; }));
+    stageHeight = shot.offsetHeight;
     points = rects.map(function (rect, index) {
       return {
         x: rect.left + (rect.width - width) / 2,
@@ -73,7 +124,7 @@
     });
   }
 
-  function render() {
+  function render(timestamp) {
     frame = 0;
     if (measureNeeded) {
       measureNeeded = false;
@@ -98,25 +149,55 @@
     progress.style.transform = "scaleX(" + clamp((scrollY - start) / Math.max(1, end - start), 0, 1) + ")";
     if (!enabled) return;
 
-    var current = 0;
-    while (current < points.length - 1 && scrollY >= points[current + 1].stop) current++;
+    var targetChapter = 0;
+    while (targetChapter < points.length - 1 && scrollY >= points[targetChapter + 1].stop) targetChapter++;
+    var nextChapter = Math.min(targetChapter + 1, points.length - 1);
+    var travel = Math.min(600, (points[nextChapter].stop - points[targetChapter].stop) * .75);
+    var target = targetChapter + (travel > 0 ? clamp((scrollY - points[nextChapter].stop + travel) / travel, 0, 1) : 0);
+
+    // Brief, rate-limited catch-up shows the in-betweens even when the scrollbar jumps.
+    var elapsed = Math.min(32, timestamp - lastFrameAt || 16);
+    lastFrameAt = timestamp;
+    if (phase === null || Math.abs(target - phase) < .002) phase = target;
+    else phase += clamp((target - phase) * (1 - Math.exp(-elapsed / 75)), -elapsed / 160, elapsed / 160);
+
+    var current = Math.floor(phase);
     var next = Math.min(current + 1, points.length - 1);
-    var from = points[current];
-    var to = points[next];
-    var travel = Math.min(520, (to.stop - from.stop) * .65);
-    var fraction = travel > 0 ? clamp((scrollY - to.stop + travel) / travel, 0, 1) : 0;
-    var eased = fraction * fraction * (3 - 2 * fraction);
-    var x = from.x + (to.x - from.x) * eased;
-    var y = current === 0 ? Math.max(restingY, from.top - scrollY) : restingY;
+    var fraction = phase - current;
+    var eased = smoothstep(fraction);
+    var x = points[current].x + (points[next].x - points[current].x) * eased;
+    var y = current === 0 ? Math.max(restingY, points[0].top - scrollY) : restingY;
     y -= Math.sin(fraction * Math.PI) * 18;
+
+    var poseIndex = Math.round(phase * 4);
+    if (poseIndex !== shownPose) {
+      shownPose = poseIndex;
+      var pose = poses[poseIndex];
+      if (pose.src !== shownSource) {
+        shownSource = pose.src;
+        picture.src = pose.src;
+      }
+      sprite.style.setProperty("--sprite-x", pose.x);
+      sprite.style.setProperty("--sprite-y", pose.y);
+      if (pose.transition) {
+        sprite.style.setProperty("--sprite-clip-top", pose.clipTop + "%");
+        sprite.style.setProperty("--sprite-clip-bottom", pose.clipBottom + "%");
+      }
+      sprite.classList.toggle("is-transition", pose.transition);
+    }
+
+    var captionIndex = Math.round(phase);
+    if (captionIndex !== shownCaption) {
+      shownCaption = captionIndex;
+      caption.innerHTML = captions[captionIndex];
+      stageHeight = shot.offsetHeight;
+    }
+    // Hide the outgoing caption before changing its text; only one can be visible.
+    caption.style.opacity = 1 - smoothstep(clamp(Math.abs(phase - captionIndex) / .2, 0, 1));
     y = Math.min(y, rootBottom - scrollY - stageHeight - 36);
     stage.style.transform = "translate3d(" + x.toFixed(2) + "px," + y.toFixed(2) + "px,0)";
-    shots.forEach(function (shot, index) {
-      var opacity = index === current ? 1 - eased : index === next ? eased : 0;
-      shot.style.opacity = opacity;
-      shot.style.visibility = opacity > 0 ? "visible" : "hidden";
-      shot.style.transform = "rotate(" + ((index === current ? -1 : 1) * Math.sin(fraction * Math.PI) * 3).toFixed(2) + "deg)";
-    });
+
+    if (Math.abs(target - phase) >= .002) schedule(false);
   }
 
   function schedule(needsMeasure) {
@@ -131,12 +212,7 @@
   if ("ResizeObserver" in window) new ResizeObserver(function () { schedule(true); }).observe(root);
   if (document.fonts) document.fonts.ready.then(function () { schedule(true); });
 
-  var firstImage = anchors[0].querySelector("img");
-  function enableImages() {
-    imageReady = firstImage.naturalWidth > 0;
-    schedule(true);
-  }
-  if (firstImage.complete) enableImages();
-  else firstImage.addEventListener("load", enableImages, { once: true });
+  firstImage.addEventListener("load", function () { schedule(true); }, { once: true });
+  transitionImage.addEventListener("load", function () { schedule(true); }, { once: true });
   schedule(true);
 })();
