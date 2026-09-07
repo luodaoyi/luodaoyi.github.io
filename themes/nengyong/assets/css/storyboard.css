@@ -39,8 +39,9 @@ html[data-theme="dark"] .story-paper { box-shadow: 1px 4px 12px rgb(0 0 0 / 16%)
   .story-stage .story-caption { background: var(--bg); padding-bottom: 8px; }
   .storyboard-enhanced .story-stage { display: block; }
   .storyboard-enhanced .story-anchor > .story-shot { opacity: 0; }
-  /* Keep the greeting above the floating scene and its opaque caption. */
-  .hero-signature { bottom: -3%; left: 10%; z-index: 21; }
+  /* Keep both text decorations above the floating scene and its white paper. */
+  .hero-stamp, .hero-signature { z-index: 21; }
+  .hero-signature { bottom: -3%; left: 10%; }
 }
 @media (max-width: 999px) {
   .story-spread { grid-template-columns: minmax(0, 1fr); gap: 40px; }
