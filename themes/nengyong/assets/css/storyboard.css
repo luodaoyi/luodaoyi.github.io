@@ -1,0 +1,67 @@
+/* One illustrated character travels through the five homepage chapters. */
+.story-avatar { position: relative; flex: 0 0 42px; overflow: hidden; background: #fff; border: 1px solid var(--border); }
+.story-avatar img { position: absolute; width: 420%; max-width: none; height: 280%; left: -300%; top: -160%; }
+.chapter-caption { display: inline-flex; align-items: center; gap: 8px; color: var(--profile-accent); font-size: 12px; white-space: nowrap; }
+.chapter-caption > span { font-size: 18px; }
+.story-progress { position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background: var(--profile-accent); transform: scaleX(0); transform-origin: left; }
+.story-anchor { width: min(100%, 380px); margin: 0 auto; }
+.story-shot { width: 100%; margin: 0; }
+.story-visual { position: relative; aspect-ratio: 1; isolation: isolate; }
+.story-paper { position: absolute; inset: 6% 1%; background: var(--profile-tint); transform: rotate(-5deg); box-shadow: 1px 4px 12px rgb(25 25 45 / 5%); }
+.story-sprite { position: absolute; inset: 3%; overflow: hidden; background: #fff; transform: rotate(2deg); box-shadow: 0 2px 5px rgb(25 25 45 / 7%); clip-path: polygon(0 1%, 34% 0, 68% 1%, 100% 0, 99% 40%, 100% 99%, 64% 100%, 32% 99%, 0 100%, 1% 60%); }
+.story-sprite img { position: absolute; width: 306%; max-width: none; height: 204%; left: calc(var(--sprite-x) * -102% - 1%); top: calc(var(--sprite-y) * -102% - 1%); }
+.story-caption { padding: 24px 12px 0; text-align: center; }
+.story-count { display: flex; align-items: center; justify-content: center; gap: 12px; font: 11px/1 var(--font-mono); color: var(--profile-accent); }
+.story-count-line { width: 40px; height: 1px; background: currentColor; opacity: .35; }
+.story-title { margin: 12px 0 6px; font-size: 15px; font-weight: 550; letter-spacing: -.02em; }
+.story-detail { margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.7; }
+.story-column, .story-copy { min-width: 0; }
+.story-spread { display: grid; align-items: start; gap: 48px; }
+.story-spread .about-note { max-width: 440px; margin: 48px 0 0; }
+.story-stage { display: none; }
+html[data-theme="dark"] .story-sprite { filter: brightness(.85) saturate(.8); }
+html[data-theme="dark"] .story-paper { box-shadow: 1px 4px 12px rgb(0 0 0 / 16%); }
+
+@media (min-width: 1000px) {
+  .story-spread { grid-template-columns: minmax(0, .82fr) minmax(0, 1.38fr); gap: 72px; min-height: 690px; scroll-margin-top: 56px; }
+  .story-spread.art-right { grid-template-columns: minmax(0, 1.38fr) minmax(0, .82fr); }
+  .art-right .story-column { grid-column: 2; grid-row: 1; }
+  .art-right .story-copy { grid-column: 1; grid-row: 1; }
+  .story-spread .project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px 24px; }
+  .story-spread .project-cover { padding: 16px; }
+  .story-spread .project-wordmark { font-size: clamp(20px, 2vw, 28px); }
+  .story-spread .recent-note { grid-template-columns: minmax(0, 1fr) 20px; gap: 10px; }
+  .story-spread .recent-note time { grid-column: 1 / -1; font-size: 12px; }
+  .story-spread .more-projects a { flex-direction: column; gap: 6px; }
+  .profile-contact.story-spread { min-height: max(690px, calc(100svh - 120px)); padding-bottom: 112px; }
+  .story-stage { position: fixed; top: 0; left: 0; z-index: 20; pointer-events: none; will-change: transform; }
+  .story-stage .story-shot { position: absolute; top: 0; left: 0; opacity: 0; }
+  .story-stage .story-caption { background: var(--bg); padding-bottom: 8px; }
+  .storyboard-enhanced .story-stage { display: block; }
+  .storyboard-enhanced .story-anchor > .story-shot { opacity: 0; }
+  .hero-signature { bottom: -3%; left: 10%; }
+}
+@media (max-width: 999px) {
+  .story-spread { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .story-spread .story-column { order: 1; }
+  .story-spread .story-copy { order: 2; }
+  .story-spread .story-anchor { max-width: 320px; }
+  .story-spread .about-note { margin: 40px auto 0; }
+  .profile-section { scroll-margin-top: 48px; }
+  .chapter-caption { display: none; }
+}
+@media (max-width: 767px) {
+  .hero-art { margin-top: 32px; }
+  .hero-stamp { right: 0; top: -12px; z-index: 1; }
+  .hero-signature { left: auto; right: 0; bottom: 104px; font-size: 24px; }
+  .story-anchor { max-width: 330px; }
+  .story-spread .story-anchor { max-width: 280px; }
+  .story-caption { padding-top: 20px; }
+  .story-title { font-size: 14px; }
+  .story-detail { font-size: 11px; }
+  .profile-section { scroll-margin-top: 40px; }
+}
+@media (prefers-reduced-motion: reduce), print {
+  .story-stage { display: none !important; }
+  .storyboard-enhanced .story-anchor > .story-shot { opacity: 1; }
+}

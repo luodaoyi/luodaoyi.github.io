@@ -6,12 +6,16 @@
 <body>
   <a class="skip-link" href="#main">跳到正文</a>
   {{- partial "header.html" . -}}
-  <main id="main" class="main">
+  <main id="main" class="main{{ if .IsHome }} main-home{{ end }}">
     {{- block "main" . }}{{ end -}}
   </main>
   {{- partial "footer.html" . -}}
   {{- partial "analytics.html" . -}}
   {{- $js := resources.Get "js/main.js" | minify | fingerprint -}}
   <script src="{{ $js.RelPermalink }}" defer></script>
+  {{- if .IsHome -}}
+    {{- $story := resources.Get "js/storyboard.js" | minify | fingerprint -}}
+    <script src="{{ $story.RelPermalink }}" defer></script>
+  {{- end -}}
 </body>
 </html>

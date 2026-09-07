@@ -1,0 +1,19 @@
+{{- $scene := index .page.Site.Data.storyboard .name -}}
+<div class="story-anchor" data-story-scene="{{ .name }}">
+  <figure class="story-shot">
+    <div class="story-visual" aria-hidden="true">
+      <span class="story-paper"></span>
+      <div class="story-sprite" style="--sprite-x: {{ $scene.x }}; --sprite-y: {{ $scene.y }};">
+        {{- with resources.Get "images/story-character.png" -}}
+        {{- $atlas := .Resize "1536x webp q88" -}}
+        <img src="{{ $atlas.RelPermalink }}" width="{{ $atlas.Width }}" height="{{ $atlas.Height }}" alt="" decoding="async"{{ if eq $.name "intro" }} fetchpriority="high"{{ else }} loading="lazy"{{ end }}>
+        {{- end -}}
+      </div>
+    </div>
+    <figcaption class="story-caption">
+      <span class="story-count"><span>{{ $scene.number }}</span><span class="story-count-line"></span><span>05</span></span>
+      <p class="story-title">{{ $scene.title }}</p>
+      <p class="story-detail">{{ $scene.detail }}</p>
+    </figcaption>
+  </figure>
+</div>

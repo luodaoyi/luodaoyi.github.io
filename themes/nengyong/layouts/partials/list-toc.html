@@ -1,0 +1,12 @@
+<aside class="toc list-toc" aria-label="当前页面">
+  <div class="toc-inner">
+    <h2 class="toc-title">当前页面</h2>
+    <nav>
+      <ul>
+        {{- range . -}}
+        <li><a href="#post-{{ .File.UniqueID }}" title="{{ .Title }}">{{ .Title }}</a></li>
+        {{- end -}}
+      </ul>
+    </nav>
+  </div>
+</aside>

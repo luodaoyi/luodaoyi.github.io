@@ -1,16 +1,16 @@
-<article class="post-card">
+<article class="post-card" id="post-{{ .File.UniqueID }}">
+  <time class="post-card-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006/01/02" }}</time>
   <h2 class="post-card-title">
     <a href="{{ .RelPermalink }}">{{ .Title }}</a>
   </h2>
-  {{- partial "post-meta.html" (dict "page" . "showViews" false) -}}
-  {{- with .Summary -}}
-  <div class="post-card-summary">{{ . | plainify | htmlUnescape | truncate 180 }}</div>
-  {{- end -}}
   {{- with .GetTerms "tags" -}}
   <div class="tag-list">
     {{- range . -}}
     <a class="tag" href="{{ .RelPermalink }}">{{ .Data.Term | default .Title }}</a>
     {{- end -}}
   </div>
+  {{- end -}}
+  {{- with .Summary -}}
+  <div class="post-card-summary">{{ . | plainify | htmlUnescape | truncate 300 }}</div>
   {{- end -}}
 </article>

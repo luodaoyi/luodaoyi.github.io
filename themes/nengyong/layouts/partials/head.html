@@ -49,5 +49,7 @@
 {{- $cssMain := resources.Get "css/main.css" -}}
 {{- $cssChromaL := resources.Get "css/chroma-light.css" -}}
 {{- $cssChromaD := resources.Get "css/chroma-dark.css" -}}
-{{- $css := slice $cssMain $cssChromaL $cssChromaD | resources.Concat "css/nengyong.css" | minify | fingerprint -}}
+{{- $cssProfile := resources.Get "css/profile.css" -}}
+{{- $cssStory := resources.Get "css/storyboard.css" -}}
+{{- $css := slice $cssMain $cssProfile $cssStory $cssChromaL $cssChromaD | resources.Concat "css/nengyong.css" | minify | fingerprint -}}
 <link rel="stylesheet" href="{{ $css.RelPermalink }}">

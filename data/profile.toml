@@ -1,0 +1,66 @@
+# 首页项目简介，来源：content/about/index.md。
+[[projects]]
+name = "grok-bridge-rs"
+label = "grok → build"
+category = "AI · 开发工具"
+description = "本地 Grok Runtime Bridge，让 Codex、Claude Code 调用 Grok CLI，统一管理会话与终端输出。"
+url = "https://github.com/luodaoyi/grok-bridge-rs"
+featured = true
+
+[[projects]]
+name = "pdb_proxy"
+label = "PDB / CACHE"
+category = "调试 · 符号服务"
+description = "微软符号服务器的本地代理。缓存下载过的 PDB，让下一次调试少等一会儿。"
+url = "https://github.com/luodaoyi/pdb_proxy"
+featured = true
+
+[[projects]]
+name = "TAD6S4N10G-fnos"
+label = "fnOS"
+category = "NAS · 硬件"
+description = "把 TAD6S4N10G 的温度、功耗、风扇和机箱按键接入飞牛原生界面。"
+url = "https://github.com/luodaoyi/TAD6S4N10G-fnos"
+featured = true
+
+[[projects]]
+name = "Certwarden"
+label = "Certwarden"
+category = "自托管 · 证书监控"
+description = "面向团队的多租户 SSL/TLS 证书监控，支持状态检测、通知告警、历史记录与公开状态页。"
+url = "https://github.com/luodaoyi/Certwarden"
+featured = true
+
+[[projects]]
+name = "komari-zig-agent"
+label = "Zig / Agent"
+category = "Zig · 系统监控"
+description = "用 Zig 重写 Komari Agent，让 OpenWrt、VPS 和小内存设备也能轻装上阵。"
+url = "https://github.com/luodaoyi/komari-zig-agent"
+featured = true
+
+[[projects]]
+name = "BreatheLens"
+label = "BreatheLens"
+category = "桌面应用 · 数据分析"
+description = "本地读取瑞思迈呼吸机 SD 卡，把原始数据整理成容易查看的图表和记录。"
+url = "https://github.com/luodaoyi/BreatheLens"
+featured = true
+
+[[projects]]
+name = "pi-zig-skills"
+description = "给 Pi 的 Zig 技能包，带上官方 zls 诊断工具。"
+url = "https://github.com/luodaoyi/pi-zig-skills"
+featured = false
+
+[[projects]]
+name = "CodexUsageBar"
+description = "在 Windows 桌面实时查看 Codex 的 5 小时和每周用量。"
+url = "https://github.com/luodaoyi/codex-useage-win"
+featured = false
+
+[[projects]]
+name = "codex-notify"
+description = "为 Codex 接上多渠道通知，任务结束后及时收到消息。"
+url = "https://github.com/luodaoyi/go-codex-notify"
+featured = false

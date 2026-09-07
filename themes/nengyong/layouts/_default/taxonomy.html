@@ -1,17 +1,20 @@
 {{ define "main" }}
-<div class="container">
-  {{- partial "breadcrumb.html" . -}}
-  <header class="page-header">
-    <p class="page-kicker">{{ .Data.Singular | default .Data.Plural }}</p>
-    <h1 class="page-title">{{ .Title }}</h1>
-    <p class="page-count">共 {{ len .Pages }} 篇</p>
-  </header>
-  <section class="post-list">
-    {{- $paginator := .Paginate .Pages 20 -}}
-    {{- range $paginator.Pages -}}
-      {{- partial "post-card.html" . -}}
-    {{- end -}}
+{{- $paginator := .Paginate .Pages (.Site.Params.section.paginate | default 20) -}}
+<div class="container doc-layout">
+  <div class="doc-content">
+    {{- partial "breadcrumb.html" . -}}
+    <header class="page-header">
+      <p class="page-kicker">{{ if eq .Data.Singular "category" }}分类{{ else }}标签{{ end }}</p>
+      <h1 class="page-title">{{ .Title }}</h1>
+      <p class="page-count">共 {{ len .Pages }} 篇</p>
+    </header>
+    <div class="post-list">
+      {{- range $paginator.Pages -}}
+        {{- partial "post-card.html" . -}}
+      {{- end -}}
+    </div>
     {{- partial "pagination.html" . -}}
-  </section>
+  </div>
+  {{- partial "list-toc.html" $paginator.Pages -}}
 </div>
 {{ end }}

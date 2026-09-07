@@ -1,16 +1,17 @@
 {{ define "main" }}
 {{- $isPost := eq .Section "posts" -}}
-<article class="container article{{ if $isPost }} has-toc{{ end }}">
-  {{- partial "breadcrumb.html" . -}}
-  <header class="article-header">
-    <h1 class="article-title">{{ .Title }}</h1>
-    {{- if $isPost -}}
-      {{- partial "post-meta.html" (dict "page" . "showViews" true) -}}
-    {{- end -}}
-  </header>
-
+{{- $toc := "" -}}
+{{- if $isPost }}{{ $toc = partial "toc.html" . }}{{ end -}}
+<article class="container article{{ if $toc }} has-toc{{ end }}">
   <div class="article-layout">
     <div class="article-body">
+      {{- partial "breadcrumb.html" . -}}
+      <header class="article-header">
+        <h1 class="article-title">{{ .Title }}</h1>
+        {{- if $isPost -}}
+          {{- partial "post-meta.html" (dict "page" . "showViews" true) -}}
+        {{- end -}}
+      </header>
       <div class="content prose">
         {{ .Content }}
       </div>
@@ -69,9 +70,7 @@
       {{- end -}}
     </div>
 
-    {{- if $isPost -}}
-      {{- partial "toc.html" . -}}
-    {{- end -}}
+    {{ $toc }}
   </div>
 </article>
 {{ end }}

@@ -1,9 +1,10 @@
 {{- if and (ne .Params.toc false) (default true .Site.Params.page.toc.enable) -}}
 {{- with .TableOfContents -}}
 {{- if and . (ne . "<nav id=\"TableOfContents\"></nav>") -}}
-<aside class="toc" id="toc">
+<aside class="toc" id="toc" aria-label="文章目录">
+  <a class="toc-back" href="{{ "posts/" | relURL }}">← 返回文章列表</a>
   <div class="toc-inner">
-    <div class="toc-title">目录</div>
+    <h2 class="toc-title">当前页面</h2>
     {{ . }}
   </div>
 </aside>

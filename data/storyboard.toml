@@ -1,0 +1,35 @@
+# 图集按三列、两行排列。x / y 从 0 开始。
+[intro]
+x = 0
+y = 0
+number = "01"
+title = "你好，我是 luodaoyi。"
+detail = "很高兴，在这里遇见你。"
+
+[projects]
+x = 1
+y = 0
+number = "02"
+title = "把一个想法，写成能用的工具。"
+detail = "故事，从一行代码开始。"
+
+[about]
+x = 2
+y = 0
+number = "03"
+title = "拆开看看，再弄明白一点。"
+detail = "系统、网络、小主机，总有新的问题。"
+
+[notes]
+x = 0
+y = 1
+number = "04"
+title = "踩过的坑，留一份笔记。"
+detail = "给下一次折腾，也给路过的你。"
+
+[contact]
+x = 1
+y = 1
+number = "05"
+title = "接下来，听你说。"
+detail = "新的故事，从一句你好开始。"

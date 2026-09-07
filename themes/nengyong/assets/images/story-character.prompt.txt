@@ -1,0 +1,22 @@
+Use case: illustration-story
+Asset type: one production-ready transparent character sprite sheet for a personal blog, designed for CSS cropping of exactly six equal cells.
+
+Primary request: Generate exactly ONE image at 3072 × 2048 pixels, aspect ratio 3:2. It is an invisible, perfectly regular 3-column × 2-row grid: six square 1024 × 1024 cells. Every character and associated prop is wholly contained within its own cell, with at least 10% transparent padding on all four sides. Centers of the six cells are (512,512), (1536,512), (2560,512), (512,1536), (1536,1536), (2560,1536). Keep the strict equal divisions even if the rendered resolution differs. Do not draw grid lines or cell backgrounds. Do not let shadows, paper edges, limbs, props, or strokes cross a cell boundary.
+
+Input images: Image 1, the photographic portrait, is the primary facial identity reference. Preserve that specific adult East Asian man's recognizable face, facial proportions, naturally shaped eyes, short slightly spiky black hair, thin rectangular semi-rimless glasses with dark upper rims, gentle facial expression, and subtle natural facial hair. Image 2, the painted portrait, is the painterly texture and brushwork reference, subordinate to Image 1 for identity.
+
+Subject invariants in every cell: exactly the same adult man, natural adult body proportions, black jacket over a black T-shirt, dark gray trousers and light gray shoes where visible. No chibi proportions, no anime eyes, no beautification into a different person. Vary body orientation modestly while keeping each face visible and identifiable.
+
+Six cells, reading left to right then top to bottom:
+1. Top left: full-body, standing naturally and giving a relaxed friendly wave to the viewer.
+2. Top middle: seated at a small simple desk, working on a laptop, a recognizable three-quarter face, both feet and the entire chair and desk fully inside the cell. Suggest programming through the activity; no readable text or code.
+3. Top right: perched in a compact crouching seated pose on a low workshop stool, inspecting one miniature PC and holding a small screwdriver, with all props and his complete body contained in the cell.
+4. Bottom left: seated, making notes with an indigo fountain pen in an open notebook resting on his lap; include the whole seated figure and simple chair.
+5. Bottom middle: full-body standing, holding a coffee cup in one hand and making an open welcoming conversational gesture toward the viewer with the other.
+6. Bottom right: a clean frontal, smiling head-and-shoulders portrait suitable for a small circular avatar, complete hair and shoulders, comfortably inset in the cell. No circle, frame, or extra props.
+
+Style/medium: warm hand-painted watercolor and gouache, soft visible brushwork and delicate pencil contours, tactile real paper-cut collage cutouts in a personal storybook/editorial scrapbook style. Narrow subtle off-white cut-paper edge directly around each character-and-prop silhouette, slight localized paper lift shadow. Paper texture exists ONLY within the subjects and their narrow cutout edges. Muted natural skin tones, black clothing, soft gray objects, small indigo accents on pen and notebook. Keep the illustration sophisticated and adult.
+
+Scene/backdrop: genuinely transparent empty background with alpha channel everywhere outside the six cutouts; no white or gray backing, no paper sheet behind the entire image, no checkerboard illustration. Each cutout is a separate transparent sprite, centered in its own equal square cell.
+
+Constraints: only these six illustrations. No typography, labels, captions, logos, watermark, grid, separator lines, borders, page layout, browser chrome, website mockup, extra people, duplicate heads, or decorative background objects. Preserve face identity and strict 3×2 cell positioning as the highest priorities.

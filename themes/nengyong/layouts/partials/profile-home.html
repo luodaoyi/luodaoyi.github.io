@@ -1,0 +1,130 @@
+{{- $posts := where .Site.RegularPages "Type" "in" .Site.Params.mainSections -}}
+<div class="profile-home" id="profile-top" data-storyboard>
+  <section class="profile-hero" aria-labelledby="hero-title" data-story-section="intro">
+    <div class="hero-copy">
+      <div class="hero-identity">
+        <span class="identity-mark story-avatar" aria-hidden="true">
+          {{- with resources.Get "images/story-character.png" -}}
+          {{- $atlas := .Resize "1536x webp q88" -}}
+          <img src="{{ $atlas.RelPermalink }}" width="{{ $atlas.Width }}" height="{{ $atlas.Height }}" alt="">
+          {{- end -}}
+        </span>
+        <div><p>Hi，我是 {{ .Site.Params.author.name }}。</p><span>开发者 · 开源与技术记录</span></div>
+      </div>
+      <p class="hero-kicker">写代码，做工具，记录折腾的过程。</p>
+      <h1 id="hero-title"><span class="title-paper">写点代码，</span><span class="title-paper hero-accent">做点有用的。</span></h1>
+      <p class="hero-intro">{{ .Site.Params.header.subtitle.name }}。</p>
+      <p class="hero-detail">折腾开发工具、系统和网络。把遇到的问题写下来，把反复要做的事做成工具。</p>
+      <div class="hero-links">
+        <a class="paper-button primary" href="#projects">看看我的作品 <span aria-hidden="true">↘</span></a>
+        <a class="paper-button" href="{{ "posts/" | relURL }}">阅读博客 <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    <div class="hero-art">
+      {{- partial "story-scene.html" (dict "page" . "name" "intro") -}}
+      <span class="hero-stamp" aria-hidden="true">LUODAOYI<br><small>CODE / TOOLS / NOTES</small></span>
+      <span class="hero-signature" aria-hidden="true">hello, world.</span>
+    </div>
+    <div class="hero-footnote"><span>BUILD. LEARN. SHARE.</span><span>从 {{ .Site.Params.footer.since }} 年，写到现在。</span></div>
+  </section>
+
+  <nav class="section-nav" aria-label="故事分镜">
+    <span class="chapter-caption"><span aria-hidden="true">▰</span> 故事分镜</span>
+    <div class="section-links">
+      <a href="#projects"><span>01</span> 作品</a>
+      <a href="#about"><span>02</span> 关于</a>
+      <a href="#notes"><span>03</span> 记录</a>
+      <a href="#contact"><span>04</span> 联系</a>
+    </div>
+    <a class="journal-link" href="{{ "posts/" | relURL }}">阅读博客 ↗</a>
+    <span class="story-progress" aria-hidden="true"></span>
+  </nav>
+
+  <section class="profile-section story-spread art-left" id="projects" aria-labelledby="projects-title" data-story-section="projects">
+    <div class="story-column">{{- partial "story-scene.html" (dict "page" . "name" "projects") -}}</div>
+    <div class="story-copy">
+    <header class="profile-section-heading">
+      <p class="eyebrow">01 / SELECTED WORK</p>
+      <h2 id="projects-title">从自己的问题出发。</h2>
+      <p>一些最近写过、整理过，或者还在持续维护的小东西。</p>
+    </header>
+    <div class="project-grid">
+      {{- range $index, $project := where .Site.Data.profile.projects "featured" true -}}
+      <a class="project-card" href="{{ .url }}" target="_blank" rel="noopener noreferrer">
+        <div class="project-cover cover-{{ $index }}" aria-hidden="true">
+          <span class="project-cover-category">{{ .category }}</span>
+          <span class="project-wordmark">{{ .label }}</span>
+          <span class="project-cover-caption">luodaoyi / open source</span>
+        </div>
+        <div class="project-copy">
+          <div class="project-caption"><span>{{ printf "%02d" (add $index 1) }}</span> github.com/luodaoyi</div>
+          <h3>{{ .name }} <span aria-hidden="true">↗</span></h3>
+          <p>{{ .description }}</p>
+        </div>
+      </a>
+      {{- end -}}
+    </div>
+    <div class="more-projects">
+      <h3>更多项目</h3>
+      <ul>
+        {{- range where .Site.Data.profile.projects "featured" false -}}
+        <li><a href="{{ .url }}" target="_blank" rel="noopener noreferrer"><strong>{{ .name }} <span aria-hidden="true">↗</span></strong><span>{{ .description }}</span></a></li>
+        {{- end -}}
+      </ul>
+    </div>
+    </div>
+  </section>
+
+  <section class="profile-section profile-about story-spread art-right" id="about" aria-labelledby="about-title" data-story-section="about">
+    <div class="story-column">{{- partial "story-scene.html" (dict "page" . "name" "about") -}}</div>
+    <div class="story-copy">
+    <div class="profile-section-heading">
+      <p class="eyebrow">02 / ABOUT ME</p>
+      <h2 id="about-title">还在学习，继续折腾。</h2>
+      <p>{{ .Site.Params.description }}</p>
+      <p>这里记录我的项目、编程笔记和系统实践。代码写下来，踩过的坑也留下来。</p>
+      <a class="inline-link" href="{{ "about/" | relURL }}">更多关于我 ↗</a>
+    </div>
+    <div class="about-note">
+      <span class="eyebrow">A NOTE TO SELF</span>
+      <p>能用就行。<br><span>弄明白更好。</span></p>
+      <div class="about-stats"><span><strong>{{ len $posts }}</strong> 篇文章</span><span><strong>{{ .Site.Params.footer.since }}</strong> 开始记录</span></div>
+    </div>
+    </div>
+  </section>
+
+  <section class="profile-section profile-notes story-spread art-left" id="notes" aria-labelledby="notes-title" data-story-section="notes">
+    <div class="story-column">{{- partial "story-scene.html" (dict "page" . "name" "notes") -}}</div>
+    <div class="story-copy">
+    <header class="profile-section-heading">
+      <p class="eyebrow">03 / RECENT NOTES</p>
+      <h2 id="notes-title">最近，写了这些。</h2>
+      <p>项目进展、问题排查，还有一些值得记下来的经验。</p>
+    </header>
+    <div class="recent-notes">
+      {{- range first 3 $posts.ByDate.Reverse -}}
+      <a class="recent-note" href="{{ .RelPermalink }}"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006/01/02" }}</time><h3>{{ .Title }}</h3><span aria-hidden="true">↗</span></a>
+      {{- end -}}
+    </div>
+    <a class="inline-link" href="{{ "posts/" | relURL }}">阅读全部文章 ↗</a>
+    </div>
+  </section>
+
+  <section class="profile-section profile-contact story-spread art-right" id="contact" aria-labelledby="contact-title" data-story-section="contact">
+    <div class="story-column">{{- partial "story-scene.html" (dict "page" . "name" "contact") -}}</div>
+    <div class="story-copy">
+    <p class="eyebrow">04 / SAY HELLO</p>
+    <h2 id="contact-title">聊聊技术，或者打个招呼。</h2>
+    {{- with .Site.Params.social.Email -}}
+    <a class="contact-email" href="mailto:{{ . }}">{{ . }} ↗</a>
+    {{- end -}}
+    <div class="contact-links">
+      {{- with .Site.Params.social.GitHub }}<a href="https://github.com/{{ . }}" target="_blank" rel="me noopener">GitHub ↗</a>{{ end -}}
+      <a href="{{ "index.xml" | relURL }}">RSS 订阅 ↗</a>
+      <a href="{{ "about/" | relURL }}">关于我 ↗</a>
+    </div>
+    <p class="contact-signature">See you around,<br><span>{{ .Site.Params.author.name }}</span></p>
+    </div>
+  </section>
+  <div class="profile-bottom"><span>{{ .Site.Params.author.name }} · {{ .Site.Params.header.subtitle.name }}</span><a href="#profile-top">回到顶部 ↑</a></div>
+</div>
