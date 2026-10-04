@@ -6,6 +6,14 @@ description: 小学生一枚
 
 小学生一枚。
 
+## 现在主要做 Respire
+
+[Respire](https://rsrs.rs) 是我现在的主要项目，一套本地优先的 AI 记忆系统。用 `rsrs` 在自己的设备上保存和检索记忆，接到常用的 AI 工具里，需要多设备协作时再同步加密记录。
+
+介绍和上手方法：[Respire：给 AI 工具一份能带走的记忆](/posts/respire/)
+
+代码与文档放在 [risense-ai](https://github.com/risense-ai) 下。当前公开仓库默认分支的第一方代码和文档采用 Respire Noncommercial License 1.0；商业使用需要事先书面授权，Core 二进制单独许可。历史版本按随版本附带的许可使用，具体以各仓库和版本的许可证为准。
+
 ## 最近折腾的项目
 
 这里放一些我最近写过、整理过，或者还在持续维护的小东西。

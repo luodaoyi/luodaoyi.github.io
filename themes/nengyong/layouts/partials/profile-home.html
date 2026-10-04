@@ -9,14 +9,14 @@
           <img src="{{ $atlas.RelPermalink }}" width="{{ $atlas.Width }}" height="{{ $atlas.Height }}" alt="">
           {{- end -}}
         </span>
-        <div><p>Hi，我是 {{ .Site.Params.author.name }}。</p><span>开发者 · 开源与技术记录</span></div>
+        <div><p>Hi，我是 {{ .Site.Params.author.name }}。</p><span>开发者 · Respire · 技术记录</span></div>
       </div>
       <p class="hero-kicker">写代码，做工具，记录折腾的过程。</p>
       <h1 id="hero-title"><span class="title-paper">写点代码，</span><span class="title-paper hero-accent">做点有用的。</span></h1>
       <p class="hero-intro">{{ .Site.Params.header.subtitle.name }}。</p>
-      <p class="hero-detail">折腾开发工具、系统和网络。把遇到的问题写下来，把反复要做的事做成工具。</p>
+      <p class="hero-detail">现在主要做 Respire，给 AI 工具一份本地优先的记忆。也在这里记录开发工具、系统和网络的折腾过程。</p>
       <div class="hero-links">
-        <a class="paper-button primary" href="#projects">看看我的作品 <span aria-hidden="true">↘</span></a>
+        <a class="paper-button primary" href="{{ "posts/respire/" | relURL }}">了解 Respire <span aria-hidden="true">↗</span></a>
         <a class="paper-button" href="{{ "posts/" | relURL }}">阅读博客 <span aria-hidden="true">↗</span></a>
       </div>
     </div>
@@ -46,7 +46,7 @@
     <header class="profile-section-heading">
       <p class="eyebrow">01 / SELECTED WORK</p>
       <h2 id="projects-title">从自己的问题出发。</h2>
-      <p>一些最近写过、整理过，或者还在持续维护的小东西。</p>
+      <p>Respire 是现在的主要项目。这里也放着其他写过、整理过的工具。</p>
     </header>
     <div class="project-grid">
       {{- range $index, $project := where .Site.Data.profile.projects "featured" true -}}
@@ -54,10 +54,10 @@
         <div class="project-cover cover-{{ $index }}" aria-hidden="true">
           <span class="project-cover-category">{{ .category }}</span>
           <span class="project-wordmark">{{ .label }}</span>
-          <span class="project-cover-caption">luodaoyi / open source</span>
+          <span class="project-cover-caption">{{ .caption | default "luodaoyi / open source" }}</span>
         </div>
         <div class="project-copy">
-          <div class="project-caption"><span>{{ printf "%02d" (add $index 1) }}</span> github.com/luodaoyi</div>
+          <div class="project-caption"><span>{{ printf "%02d" (add $index 1) }}</span> {{ .source | default "github.com/luodaoyi" }}</div>
           <h3>{{ .name }} <span aria-hidden="true">↗</span></h3>
           <p>{{ .description }}</p>
         </div>

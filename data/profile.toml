@@ -1,5 +1,15 @@
 # 首页项目简介，来源：content/about/index.md。
 [[projects]]
+name = "Respire"
+label = "Respire / rsrs"
+category = "主要项目 · AI 记忆"
+description = "我现在的主要项目。本地优先的 AI 记忆系统，用 rsrs 保存和检索记忆，按需同步加密记录。"
+url = "/posts/respire/"
+caption = "luodaoyi / primary project"
+source = "rsrs.rs"
+featured = true
+
+[[projects]]
 name = "grok-bridge-rs"
 label = "grok → build"
 category = "AI · 开发工具"
